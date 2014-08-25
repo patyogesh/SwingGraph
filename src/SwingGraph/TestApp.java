@@ -101,6 +101,9 @@ import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
 
 import javax.swing.ImageIcon;
+import javax.swing.JInternalFrame;
+import java.awt.Rectangle;
+import javax.swing.JDesktopPane;
 
 public class TestApp extends JFrame implements SerialPortEventListener {
 
@@ -215,16 +218,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	 */
 	public static void main(String[] args) {
 		set_native_look_and_feel();
+		displayNewWindow();
 		
-		frameNewMenu = new JFrame ("MyPanel");
-        frameNewMenu.setPreferredSize(new Dimension(350, 450));
-        frameNewMenu.setLocationRelativeTo(null);;
-        frameNewMenu.setResizable(false);
-        frameNewMenu.setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);
-        //frameNewMenu.getContentPane().add (new MyPanel2());
-        frameNewMenu.pack();
-        frameNewMenu.setVisible (false);
-        
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {				
@@ -236,12 +232,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					
 					testAppFrame.connect();
 					
-					System.out.println("initIOStream returned" + testAppFrame.initIOStream());
-					System.out.println("Initing Listeners");
-					testAppFrame.initListener();
-					System.out.println("Work Done, Deinit");
-
-					System.out.println("Let's Go home");
+//					System.out.println("initIOStream returned" + testAppFrame.initIOStream());
+//					System.out.println("Initing Listeners");
+//					testAppFrame.initListener();
+//					System.out.println("Work Done, Deinit");
+//
+//					System.out.println("Let's Go home");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -251,7 +247,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
 	public void addPoint(Number x, Number y) {
     	XYItemRenderer renderer = xyPlot.getRenderer();
-    	System.out.println("addPoint y = " + y.doubleValue() + "thresholdMarker" + thresholdMarker);
+    	System.out.println("addPoint y = " + y.doubleValue() + "  thresholdMarker" + thresholdMarker);
 		if(y.doubleValue() > thresholdMarker) {
 			GradientPaint gPaint = new GradientPaint(2.0f, 6.0f, Color.lightGray, 2.0f, 6.0f, Color.green);
         	xyPlot.setBackgroundPaint(gPaint);
@@ -315,15 +311,15 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         
         return chartPanel_1;
 	}
-	public static void displayNewWindow() {
-        JFrame frame = new JFrame ("MyPanel");
-        frame.setPreferredSize(new Dimension(350, 450));
-        frame.setLocationRelativeTo(null);;
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);
-        //frame.getContentPane().add (new MyPanel2());
-        frame.pack();
-        frame.setVisible (true);
+	public static void displayNewWindow() {       
+        frameNewMenu = new JFrame ("New Patient");
+        frameNewMenu.setPreferredSize(new Dimension(350, 450));
+        frameNewMenu.setLocationRelativeTo(null);;
+        frameNewMenu.setResizable(false);
+        frameNewMenu.setDefaultCloseOperation (JFrame.HIDE_ON_CLOSE);
+        //frameNewMenu.getContentPane().add (new MyPanel2());
+        frameNewMenu.pack();
+        frameNewMenu.setVisible (false);
 	}
 	/**
 	 * Create the frame.
@@ -704,6 +700,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
 			sample_time_start = System.nanoTime();
 			curr_state = CurrentState.INIT;
+			
+			System.out.println("initIOStream returned" + testAppFrame.initIOStream());
+			System.out.println("Initing Listeners");
+			testAppFrame.initListener();
+			System.out.println("Work Done, Deinit");
+
+			System.out.println("Let's Go home");
 		}
 		catch (PortInUseException e)
 		{
