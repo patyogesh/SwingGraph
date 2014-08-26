@@ -59,6 +59,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 
 
+
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -102,13 +103,20 @@ import java.awt.event.InputMethodEvent;
 
 import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
+
 import java.awt.Rectangle;
+
 import javax.swing.JDesktopPane;
 
 public class TestApp extends JFrame implements SerialPortEventListener {
 
 	private JPanel contentPane;
+	
 	static JFrame frameNewMenu;
+	static private JPanel contentPaneNewMenuWindow;
+	static private JTextField textPatName;
+	static private JTextField textPatNumber;
+	static private JTextField textPatTestNumber;
 	
 	static TestApp testAppFrame;
 	
@@ -119,7 +127,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	public  Timer  timer;
 	ActionListener countDownTimeListener;
 	long countDown = 0;
-	long countElapsed = 0;
+	public long countElapsed = 0;
 	boolean bTimeOver = false;
 	JLabel lblTimeRemaining;
 	
@@ -218,9 +226,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	 */
 	public static void main(String[] args) {
 		set_native_look_and_feel();
-		displayNewWindow();
-		
-		
+					
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {				
@@ -230,7 +236,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					System.out.println("Object created!! Searching for ports now");
 					testAppFrame.searchForPorts();
 					
-					testAppFrame.connect();
+//					testAppFrame.connect();
 					
 //					System.out.println("initIOStream returned" + testAppFrame.initIOStream());
 //					System.out.println("Initing Listeners");
@@ -311,16 +317,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         
         return chartPanel_1;
 	}
-	public static void displayNewWindow() {       
-        frameNewMenu = new JFrame ("New Patient");
-        frameNewMenu.setPreferredSize(new Dimension(350, 450));
-        frameNewMenu.setLocationRelativeTo(null);;
-        frameNewMenu.setResizable(false);
-        frameNewMenu.setDefaultCloseOperation (JFrame.HIDE_ON_CLOSE);
-        //frameNewMenu.getContentPane().add (new MyPanel2());
-        frameNewMenu.pack();
-        frameNewMenu.setVisible (false);
-	}
 	/**
 	 * Create the frame.
 	 */
@@ -339,8 +335,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		JMenuItem mntmNew = new JMenuItem("New");
 		mntmNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-//				displayNewWindow();
-				frameNewMenu.setVisible (true);
+				NewMenuWindow nW = new NewMenuWindow();
+				nW.setVisible(true);
 			}
 		});
 		mntmNew.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\1408774854_common_new_edit_compose.png"));
@@ -400,6 +396,29 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		mntmPrint.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		mnFile.add(mntmPrint);
 		
+		JSeparator separator_8 = new JSeparator();
+		mnFile.add(separator_8);
+		
+		JMenuItem mntmNewMenuItem = new JMenuItem("Connect");
+		mntmNewMenuItem.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\1409029290_Connect.png"));
+		mntmNewMenuItem.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		mnFile.add(mntmNewMenuItem);
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				testAppFrame.connect("COM3");
+			}
+		});
+		
+		JMenuItem mntmDisconnect = new JMenuItem("Disconnect");
+		mntmDisconnect.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\1409029350_Disconnect.png"));
+		mntmDisconnect.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		mnFile.add(mntmDisconnect);
+		mntmDisconnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				testAppFrame.disconnect();
+			}
+		});
+		
 		JSeparator separator_6 = new JSeparator();
 		mnFile.add(separator_6);
 		
@@ -443,9 +462,21 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(chartPanel_1);
 		
 		final JComboBox comboBox = new JComboBox();
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"COM 1", "COM 2", "COM 3", "COM 4", "COM 5", "COM 6"}));
+		
+		comboBox.setModel(new DefaultComboBoxModel(new String[] {"COM1", 
+																 "COM2", 
+																 "COM3", 
+																 "COM4", 
+																 "COM5", 
+																 "COM6"}));
 		comboBox.setSelectedIndex(2);
 		comboBox.setBounds(1220, 123, 101, 27);
+		comboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println(" ----- Selected Port: " + comboBox.getSelectedItem().toString() + "------");
+				testAppFrame.connect(comboBox.getSelectedItem().toString());
+			}
+		});
 		contentPane.add(comboBox);
 		
 		final JSlider slider = new JSlider(0, 7, 1);
@@ -670,9 +701,15 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	//pre: ports are already found by using the searchForPorts method
 	//post: the connected comm port is stored in commPort, otherwise,
 	//an exception is generated
-	public void connect()
+	public void connect(String connectTo)
 	{
-		selectedPort = "COM3";
+		if(connectTo.isEmpty()) {
+			selectedPort = "COM3";
+		}
+		else {
+			selectedPort = connectTo;
+		}
+		
 		selectedPortIdentifier = (CommPortIdentifier)portMap.get(selectedPort);
 
 		sample_time_end = sample_time_elapsed = 0;
@@ -944,3 +981,5 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		}
 	}
 }
+
+
