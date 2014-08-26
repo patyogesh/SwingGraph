@@ -113,10 +113,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	private JPanel contentPane;
 	
 	static JFrame frameNewMenu;
-	static private JPanel contentPaneNewMenuWindow;
-	static private JTextField textPatName;
-	static private JTextField textPatNumber;
-	static private JTextField textPatTestNumber;
 	
 	static TestApp testAppFrame;
 	
@@ -234,16 +230,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					testAppFrame.setVisible(true);
 					
 					System.out.println("Object created!! Searching for ports now");
+					
 					testAppFrame.searchForPorts();
-					
-//					testAppFrame.connect();
-					
-//					System.out.println("initIOStream returned" + testAppFrame.initIOStream());
-//					System.out.println("Initing Listeners");
-//					testAppFrame.initListener();
-//					System.out.println("Work Done, Deinit");
-//
-//					System.out.println("Let's Go home");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -405,7 +393,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		mnFile.add(mntmNewMenuItem);
 		mntmNewMenuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				testAppFrame.connect("COM3");
+				if(testAppFrame.getConnected() == false) {
+					testAppFrame.connect("COM3");
+				}
 			}
 		});
 		
@@ -415,7 +405,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		mnFile.add(mntmDisconnect);
 		mntmDisconnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				testAppFrame.disconnect();
+				if(testAppFrame.getConnected() == true)
+					testAppFrame.disconnect();
 			}
 		});
 		
@@ -473,8 +464,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		comboBox.setBounds(1220, 123, 101, 27);
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				System.out.println(" ----- Selected Port: " + comboBox.getSelectedItem().toString() + "------");
-				testAppFrame.connect(comboBox.getSelectedItem().toString());
+				if(testAppFrame.getConnected() == false) {
+					testAppFrame.connect(comboBox.getSelectedItem().toString());
+				}
 			}
 		});
 		contentPane.add(comboBox);
@@ -601,20 +593,20 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		separator_1.setOrientation(SwingConstants.VERTICAL);
 		
 		JLabel lblBreathHoldTime = new JLabel("Breath Hold Time");
-		lblBreathHoldTime.setHorizontalAlignment(SwingConstants.CENTER);
+		lblBreathHoldTime.setHorizontalAlignment(SwingConstants.LEFT);
 		lblBreathHoldTime.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblBreathHoldTime.setBounds(1210, 323, 123, 27);
+		lblBreathHoldTime.setBounds(1210, 396, 123, 27);
 		contentPane.add(lblBreathHoldTime);
 		
 		txtSetTimeout = new JTextField();
-		txtSetTimeout.setBounds(1220, 346, 59, 27);
+		txtSetTimeout.setBounds(1210, 421, 59, 27);
 		contentPane.add(txtSetTimeout);
 		txtSetTimeout.setColumns(10);
 		
 		JLabel lblSeconds = new JLabel("Seconds");
 		lblSeconds.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSeconds.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblSeconds.setBounds(1272, 346, 69, 27);
+		lblSeconds.setBounds(1265, 421, 69, 27);
 		contentPane.add(lblSeconds);
 		
 		JPanel panel_4 = new JPanel();
@@ -648,6 +640,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		};
 		
 		JButton btnNewButton = new JButton("START");
+		btnNewButton.setForeground(new Color(34, 139, 34));
+		btnNewButton.setHorizontalAlignment(SwingConstants.LEFT);
+		btnNewButton.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\chronometer.png"));
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				timer = new Timer(1000, countDownTimeListener);
@@ -657,8 +652,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				timer.start();
 			}
 		});
-		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 20));
-		btnNewButton.setBounds(1210, 459, 111, 60);
+		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 14));
+		btnNewButton.setBounds(1210, 459, 123, 60);
 		contentPane.add(btnNewButton);
 		
 		JProgressBar progressBar = new JProgressBar();
