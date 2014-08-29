@@ -38,6 +38,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.ThermometerPlot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -45,6 +46,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 //import test.gui.CurrentState;
+
 
 
 
@@ -107,6 +109,9 @@ import javax.swing.JInternalFrame;
 import java.awt.Rectangle;
 
 import javax.swing.JDesktopPane;
+import javax.swing.JCheckBox;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.SoftBevelBorder;
 
 public class TestApp extends JFrame implements SerialPortEventListener {
 
@@ -128,8 +133,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	JLabel lblTimeRemaining;
 	
 	static Double DEFAULT_THRESHOLD = 1.5;
-	static Double thresholdMarker = DEFAULT_THRESHOLD;
+	static Double minThresholdMarker = DEFAULT_THRESHOLD;
+	static Double maxThresholdMarker = minThresholdMarker + 0.5;
+	
 	java.util.Hashtable<Integer, JLabel> thresholdTable;
+	java.util.Hashtable<Integer, JLabel> thresholdUpperTable;
 	
 	double yVal = 0;
 	static XYPlot xyPlot = null;
@@ -182,8 +190,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	final static int DASH_ASCII = 45;
 	final static int NEW_LINE_ASCII = 10;
 	
-	static int currInd = -1;
-
 	//a string for recording what goes on in the program
 	//this string is written to the GUI
 	String logText = "";
@@ -241,8 +247,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
 	public void addPoint(Number x, Number y) {
     	XYItemRenderer renderer = xyPlot.getRenderer();
-    	System.out.println("addPoint y = " + y.doubleValue() + "  thresholdMarker" + thresholdMarker);
-		if(y.doubleValue() > thresholdMarker) {
+    	//System.out.println("addPoint y = " + y.doubleValue() + "  minThresholdMarker" + minThresholdMarker);
+		if(y.doubleValue() > minThresholdMarker) {
 			GradientPaint gPaint = new GradientPaint(2.0f, 6.0f, Color.lightGray, 2.0f, 6.0f, Color.green);
         	xyPlot.setBackgroundPaint(gPaint);
 			renderer.setSeriesPaint(0, Color.green);
@@ -448,6 +454,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
+		JLabel lblSetMin = new JLabel("Set MIN");
+		lblSetMin.setHorizontalAlignment(SwingConstants.CENTER);
+		lblSetMin.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblSetMin.setBounds(1245, 196, 59, 23);
+		contentPane.add(lblSetMin);
+		
+		JLabel lblSetMax = new JLabel("Set MAX");
+		lblSetMax.setBounds(1245, 359, 59, 23);
+		contentPane.add(lblSetMax);
+		lblSetMax.setHorizontalAlignment(SwingConstants.CENTER);
+		lblSetMax.setFont(new Font("Tahoma", Font.BOLD, 11));
+				
 		ChartPanel chartPanel = drawChart();
 		contentPane.add(chartPanel);
 		contentPane.add(chartPanel_1);
@@ -471,17 +489,35 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		});
 		contentPane.add(comboBox);
 		
-		final JSlider slider = new JSlider(0, 7, 1);
+		final ValueMarker markerThresholdWindowTop = new ValueMarker(maxThresholdMarker);  // position is the value on the axis
+		/* Draw Threshold Line */ 
+        markerThresholdWindowTop.setPaint(Color.black);
+        markerThresholdWindowTop.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 
+                										   1.0f, new float[] {10.0f, 6.0f}, 0.0f));
+        markerThresholdWindowTop.setValue(maxThresholdMarker);
+        xyPlot.addRangeMarker(markerThresholdWindowTop);
+        
+     
+		final ValueMarker markerThreshold = new ValueMarker(DEFAULT_THRESHOLD);  // position is the value on the axis
+		/* Draw Threshold Line */ 
+        markerThreshold.setPaint(Color.black);
+        markerThreshold.setStroke(new BasicStroke(2));
+        markerThreshold.setValue(DEFAULT_THRESHOLD);
+        xyPlot.addRangeMarker(markerThreshold);
 		
-		slider.setSnapToTicks(true);
-		slider.setPaintTicks(true);
-		slider.setMajorTickSpacing(1);
+		final JSlider sliderMINThreshold = new JSlider(0, 7, 1);
+		sliderMINThreshold.setToolTipText("Solid Line");
+		
+		sliderMINThreshold.setSnapToTicks(true);
+		sliderMINThreshold.setPaintTicks(true);
+		sliderMINThreshold.setMajorTickSpacing(1);
 //		slider.setMinorTickSpacing(1);
-		slider.setValue(3);
-		slider.setPaintLabels(true);
-		slider.setMaximum(7);
-		slider.setOrientation(SwingConstants.VERTICAL);
-		slider.setBounds(1244, 189, 59, 123);
+		sliderMINThreshold.setValue(3);
+		sliderMINThreshold.setPaintLabels(true);
+		sliderMINThreshold.setMaximum(7);
+		sliderMINThreshold.setOrientation(SwingConstants.VERTICAL);
+		sliderMINThreshold.setBounds(1245, 222, 59, 123);
+		contentPane.add(sliderMINThreshold);
 		
 		thresholdTable = new java.util.Hashtable<Integer, JLabel>();
 		thresholdTable.put(new Integer(7), new JLabel("3.5"));
@@ -492,27 +528,59 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		thresholdTable.put(new Integer(2), new JLabel("1.0"));
 		thresholdTable.put(new Integer(1), new JLabel("0.5"));
 		thresholdTable.put(new Integer(0), new JLabel("0"));
-		slider.setLabelTable(thresholdTable);
-
-		final ValueMarker marker = new ValueMarker(DEFAULT_THRESHOLD);  // position is the value on the axis
-		/* Draw Threshold Line */ 
-        marker.setPaint(Color.black);
-        marker.setStroke(new BasicStroke(2));
-        marker.setValue(DEFAULT_THRESHOLD);
-        xyPlot.addRangeMarker(marker);
-        
-		slider.addChangeListener(new ChangeListener() {
+		
+		sliderMINThreshold.setLabelTable(thresholdTable);
+		sliderMINThreshold.setEnabled(false);
+		
+		sliderMINThreshold.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				JLabel sliderMoveVal = thresholdTable.get(slider.getValue());
-				thresholdMarker = Double.parseDouble(sliderMoveVal.getText());
-				System.out.println("Threshold Changed to " + thresholdMarker);
-				marker.setValue(thresholdMarker);
+				JLabel sliderMoveVal = thresholdTable.get(sliderMINThreshold.getValue());
+				minThresholdMarker = Double.parseDouble(sliderMoveVal.getText());
+				
+				System.out.println("Threshold Changed to " + minThresholdMarker);
+				
+				markerThreshold.setValue(minThresholdMarker);
 			}
 		});
 		
+		/* 
+		 * Upper (Dotted) threshold adjustment
+		 */
+		final JSlider sliderUpperThreshold = new JSlider(0, 7, 3);
+		sliderUpperThreshold.setToolTipText("Dash Line");
+		sliderUpperThreshold.setSnapToTicks(true);
+		sliderUpperThreshold.setPaintTicks(true);
+		sliderUpperThreshold.setPaintLabels(true);
+		sliderUpperThreshold.setOrientation(SwingConstants.VERTICAL);
+		sliderUpperThreshold.setMajorTickSpacing(1);
+		sliderUpperThreshold.setEnabled(false);
+		sliderUpperThreshold.setBounds(1245, 382, 59, 123);
+		contentPane.add(sliderUpperThreshold);
 		
-        
-		contentPane.add(slider);
+		thresholdUpperTable = new java.util.Hashtable<Integer, JLabel>();
+		thresholdUpperTable.put(new Integer(7), new JLabel("3.5"));
+		thresholdUpperTable.put(new Integer(6), new JLabel("3.0"));
+		thresholdUpperTable.put(new Integer(5), new JLabel("2.5"));
+		thresholdUpperTable.put(new Integer(4), new JLabel("2.0"));
+		thresholdUpperTable.put(new Integer(3), new JLabel("1.5"));
+		thresholdUpperTable.put(new Integer(2), new JLabel("1.0"));
+		thresholdUpperTable.put(new Integer(1), new JLabel("0.5"));
+		thresholdUpperTable.put(new Integer(0), new JLabel("0"));
+		
+		sliderUpperThreshold.setLabelTable(thresholdUpperTable);
+		sliderUpperThreshold.setEnabled(false);
+
+		sliderUpperThreshold.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				JLabel sliderMoveVal = thresholdUpperTable.get(sliderUpperThreshold.getValue());
+				maxThresholdMarker = Double.parseDouble(sliderMoveVal.getText());
+				
+				System.out.println("Threshold Changed to " + maxThresholdMarker);
+							
+				markerThresholdWindowTop.setValue(maxThresholdMarker);
+			}
+		});              
+		     
 		
 		JSeparator separator = new JSeparator();
 		separator.setOrientation(SwingConstants.VERTICAL);
@@ -524,12 +592,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		lblSelectSerialPort.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSelectSerialPort.setBounds(1210, 98, 94, 27);
 		contentPane.add(lblSelectSerialPort);
-		
-		JLabel lblAdjustThreshold = new JLabel("Set Threshold");
-		lblAdjustThreshold.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblAdjustThreshold.setHorizontalAlignment(SwingConstants.CENTER);
-		lblAdjustThreshold.setBounds(1221, 167, 94, 27);
-		contentPane.add(lblAdjustThreshold);
 		
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Patient Info", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
@@ -570,17 +632,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		separator_2.setBounds(996, 530, 13, 117);
 		contentPane.add(separator_2);
 		
-		JPanel panel_3 = new JPanel();
-		panel_3.setLayout(null);
-		panel_3.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Breath Hold Time Remaining", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		panel_3.setBounds(1003, 530, 197, 121);
-		contentPane.add(panel_3);
+		final JPanel timerDispPanel = new JPanel();
+		timerDispPanel.setBackground(new Color(240, 240, 240));
+		timerDispPanel.setLayout(null);
+		timerDispPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Breath Hold Time Remaining", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		timerDispPanel.setBounds(1003, 530, 197, 121);
+		contentPane.add(timerDispPanel);
 		
 		lblTimeRemaining = new JLabel("00");
 		lblTimeRemaining.setHorizontalAlignment(SwingConstants.CENTER);
 		lblTimeRemaining.setFont(new Font("Tahoma", Font.BOLD, 24));
 		lblTimeRemaining.setBounds(48, 21, 95, 78);
-		panel_3.add(lblTimeRemaining);
+		timerDispPanel.add(lblTimeRemaining);
 		
 		JSeparator separator_3 = new JSeparator();
 		separator_3.setOrientation(SwingConstants.VERTICAL);
@@ -595,18 +658,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		JLabel lblBreathHoldTime = new JLabel("Breath Hold Time");
 		lblBreathHoldTime.setHorizontalAlignment(SwingConstants.LEFT);
 		lblBreathHoldTime.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblBreathHoldTime.setBounds(1210, 396, 123, 27);
+		lblBreathHoldTime.setBounds(1209, 524, 123, 27);
 		contentPane.add(lblBreathHoldTime);
 		
 		txtSetTimeout = new JTextField();
-		txtSetTimeout.setBounds(1210, 421, 59, 27);
+		txtSetTimeout.setBounds(1209, 549, 59, 27);
 		contentPane.add(txtSetTimeout);
 		txtSetTimeout.setColumns(10);
 		
 		JLabel lblSeconds = new JLabel("Seconds");
 		lblSeconds.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSeconds.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblSeconds.setBounds(1265, 421, 69, 27);
+		lblSeconds.setBounds(1264, 549, 69, 27);
 		contentPane.add(lblSeconds);
 		
 		JPanel panel_4 = new JPanel();
@@ -629,6 +692,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				
 				if(countDown == 0) {
 					timer.stop();
+					timerDispPanel.setBackground(new Color(240, 240, 240));
 					bTimeOver = true;
 					
 				}else {
@@ -650,10 +714,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				countDown = Long.parseLong(txtSetTimeout.getText());
 				countElapsed = 0;
 				timer.start();
+				timerDispPanel.setBackground(new Color(240, 230, 140));
 			}
 		});
 		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 14));
-		btnNewButton.setBounds(1210, 459, 123, 60);
+		btnNewButton.setBounds(1210, 587, 123, 60);
 		contentPane.add(btnNewButton);
 		
 		JProgressBar progressBar = new JProgressBar();
@@ -667,6 +732,35 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		lblNewLabel_1.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\empty34 (1).png"));
 		lblNewLabel_1.setBounds(1244, 27, 108, 60);
 		contentPane.add(lblNewLabel_1);
+		
+
+		
+		final JCheckBox chckbxNewCheckBox = new JCheckBox("Adjust Threshold(s)");
+		chckbxNewCheckBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(chckbxNewCheckBox.isSelected()) {
+					sliderMINThreshold.setEnabled(true);
+					sliderUpperThreshold.setEnabled(true);
+				} else {
+					sliderMINThreshold.setEnabled(false);
+					sliderUpperThreshold.setEnabled(false);
+				}
+				
+			}
+		});
+		chckbxNewCheckBox.setFont(new Font("Tahoma", Font.BOLD, 11));
+		chckbxNewCheckBox.setBounds(1206, 170, 146, 23);
+		contentPane.add(chckbxNewCheckBox);
+		
+		JPanel panel_3 = new JPanel();
+		panel_3.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "        ", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_3.setBounds(1210, 200, 142, 156);
+		contentPane.add(panel_3);
+		
+		JPanel panel_5 = new JPanel();
+		panel_5.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "            ", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel_5.setBounds(1210, 363, 142, 156);
+		contentPane.add(panel_5);
 	}
 	
 	public void searchForPorts()
@@ -888,10 +982,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			double p = Double.parseDouble(s1_number.toString());
 
 			if(isNegative == true) {
-				p = 0.00 - p;
+//				p = 0.00 - p;
+				p = (-1) * p;
 			}
 			//System.out.print("\n" + p);
 
+			System.out.print("IDLE pxxx ->" + p + "\n");
 			double dp = (p/60);
 			double volume = dp/(60*55.57);
 			
@@ -917,21 +1013,21 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					testAppFrame.addPoint(yVal += 0.2, cum_volume);		
 				else
 					testAppFrame.addPoint(yVal += 0.2, 0);
-				if(currInd == -1) {
-					currInd = 0;
-				}
+				
 				sample_time_elapsed = 0;
 				sample_time_start = System.nanoTime();
 			}
 
 			/* Case 2: Switching from inhale to exhale */
-
+//			if(volume == 0.0) {
+//				cum_volume = 0;
+//			}
 			if(cum_volume != 0 &&
 			   ((prev_state == CurrentState.INHALE && curr_state == CurrentState.EXHALE) ||
 				(prev_state == CurrentState.EXHALE && curr_state == CurrentState.INHALE)))
 			{
 				cum_volume -= volume;
-				//cum_volume = 0;
+//				cum_volume = 0;
 				sample_time_elapsed_counter += SAMPLE_CUMULATION_TIMEOUT;
 
 				//valuePooListDoub.add(cum_volume);
@@ -939,9 +1035,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					testAppFrame.addPoint(yVal += 0.2, cum_volume);
 				else
 					testAppFrame.addPoint(yVal += 0.2, 0);
-				if(currInd == -1) {
-					currInd = 0;
-				}
+				
 				//cum_volume = 0;
 				sample_time_elapsed = 0;
 				sample_time_start = System.nanoTime();
