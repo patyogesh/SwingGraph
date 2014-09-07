@@ -27,6 +27,7 @@ import javax.swing.JButton;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
@@ -45,28 +46,19 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+
+
+
+import com.sun.corba.se.spi.orbutil.fsm.Action;
+
+import javax.swing.AbstractAction;
 //import test.gui.CurrentState;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.JLabel;
 import javax.swing.JSeparator;
@@ -113,6 +105,9 @@ import javax.swing.JCheckBox;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 public class TestApp extends JFrame implements SerialPortEventListener {
 
 	private JPanel contentPane;
@@ -120,9 +115,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	static JFrame frameNewMenu;
 	
 	static TestApp testAppFrame;
+	JPanel timerDispPanel;
 	
 	String selectedPort;
 	static boolean serialPortFound = false;
+	static boolean patientReady = false;
+	static boolean theropistReady = false;
 	
 	private JLabel TimeElapsed;
 	public  Timer  timer;
@@ -252,11 +250,22 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			GradientPaint gPaint = new GradientPaint(2.0f, 6.0f, Color.lightGray, 2.0f, 6.0f, Color.green);
         	xyPlot.setBackgroundPaint(gPaint);
 			renderer.setSeriesPaint(0, Color.green);
+			
+			/*
+			 * Start Timer
+			 */
+			timer = new Timer(1000, countDownTimeListener);
+			timer.setInitialDelay(0);
+			countDown = Long.parseLong(txtSetTimeout.getText());
+			countElapsed = 0;
+			timer.start();
+			timerDispPanel.setBackground(new Color(240, 230, 140));
 		}
 		else {
 			GradientPaint gPaint = new GradientPaint(4.0f, 6.0f, Color.lightGray, 3.0f, 6.0f, Color.lightGray);
           	xyPlot.setBackgroundPaint(gPaint);
 			renderer.setSeriesPaint(0, Color.blue);
+			timerDispPanel.setBackground(new Color(240, 240, 240));
 		}
 		    	
 		xyPlot.setRenderer(renderer);
@@ -293,17 +302,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         range.setVerticalTickLabels(false);
 
         chartPanel_1 = new ChartPanel(chart);
+        chartPanel_1.setZoomAroundAnchor(true);
         chartPanel_1.setMaximumDrawHeight(700);
         chartPanel_1.setRefreshBuffer(true);
         chartPanel_1.setLocation(0, 0);
         chartPanel_1.setSize(1200, 519);
         chartPanel_1.setLayout(new BorderLayout(0, 0));
-        	       
+               
         NumberAxis xAxis = (NumberAxis) xyPlot.getDomainAxis();
         NumberAxis yAxis = (NumberAxis) xyPlot.getRangeAxis();
         
         /* Set range for Y axis values */
-        yAxis.setRange(-1.0, 6.0);
+        yAxis.setRange(-3.0, 4.0);
                         	        
         xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
         xyPlot.setDomainAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -315,6 +325,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	 * Create the frame.
 	 */
 	public TestApp() {
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1378, 718);
 		
@@ -449,11 +460,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		mnHelp.setMnemonic('H');
 		mnHelp.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		menuBar.add(mnHelp);
-		contentPane = new JPanel();
+		contentPane = new JPanel();	
+
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
-		
+			
 		JLabel lblSetMin = new JLabel("Set MIN");
 		lblSetMin.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSetMin.setFont(new Font("Tahoma", Font.BOLD, 11));
@@ -469,6 +481,24 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		ChartPanel chartPanel = drawChart();
 		contentPane.add(chartPanel);
 		contentPane.add(chartPanel_1);
+	
+		class SpaceAction extends AbstractAction {	
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Finally spaceAction !!");
+				if(! theropistReady) {
+					theropistReady = true;
+					contentPane.setBackground(Color.GREEN);
+				} else {
+					theropistReady = false;
+					contentPane.setBackground(new Color(240,240,240));
+				}
+				
+			}
+		}
+		
+		SpaceAction spaceAction = new SpaceAction();
+		contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
+		contentPane.getActionMap().put("doEnterAction", spaceAction);
 		
 		final JComboBox comboBox = new JComboBox();
 		
@@ -616,6 +646,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		panel.add(lblOngoingSession);
 		
 		JPanel panel_1 = new JPanel();
+
 		panel_1.setLayout(null);
 		panel_1.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Section 2", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_1.setBounds(346, 530, 256, 121);
@@ -632,7 +663,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		separator_2.setBounds(996, 530, 13, 117);
 		contentPane.add(separator_2);
 		
-		final JPanel timerDispPanel = new JPanel();
+		timerDispPanel = new JPanel();
 		timerDispPanel.setBackground(new Color(240, 240, 240));
 		timerDispPanel.setLayout(null);
 		timerDispPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Breath Hold Time Remaining", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
@@ -703,22 +734,25 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			}
 		};
 		
-		JButton btnNewButton = new JButton("START");
+		final JButton btnNewButton = new JButton("Patient \r\nReady");
 		btnNewButton.setForeground(new Color(34, 139, 34));
-		btnNewButton.setHorizontalAlignment(SwingConstants.LEFT);
-		btnNewButton.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\chronometer.png"));
+		btnNewButton.setIcon(null);
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				timer = new Timer(1000, countDownTimeListener);
-				timer.setInitialDelay(0);
-				countDown = Long.parseLong(txtSetTimeout.getText());
-				countElapsed = 0;
-				timer.start();
-				timerDispPanel.setBackground(new Color(240, 230, 140));
+//				timer = new Timer(1000, countDownTimeListener);
+//				timer.setInitialDelay(0);
+//				countDown = Long.parseLong(txtSetTimeout.getText());
+//				countElapsed = 0;
+//				timer.start();
+//				timerDispPanel.setBackground(new Color(240, 230, 140));
+				XYItemRenderer renderer = xyPlot.getRenderer();
+				renderer.setSeriesPaint(0, Color.blue);
+				patientReady = true;
+				contentPane.requestFocus();
 			}
 		});
 		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 14));
-		btnNewButton.setBounds(1210, 587, 123, 60);
+		btnNewButton.setBounds(1210, 587, 142, 60);
 		contentPane.add(btnNewButton);
 		
 		JProgressBar progressBar = new JProgressBar();
@@ -761,7 +795,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		panel_5.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "            ", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		panel_5.setBounds(1210, 363, 142, 156);
 		contentPane.add(panel_5);
-	}
+}
 	
 	public void searchForPorts()
 	{
@@ -1069,6 +1103,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			logText = "Failed to write data. (" + e.toString() + ")";
 		}
 	}
+
 }
+
 
 
