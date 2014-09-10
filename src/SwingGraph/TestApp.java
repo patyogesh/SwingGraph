@@ -162,6 +162,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	 * Following fields are all related to Serial communication
 	 */
 	//for containing the ports that will be found
+	static boolean port_found = false;
 	private Enumeration ports = null;
 	//map the port names to CommPortIdentifiers
 	private HashMap portMap = new HashMap();
@@ -235,7 +236,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					
 					System.out.println("Object created!! Searching for ports now");
 					
-					testAppFrame.searchForPorts();
+					port_found = false;
+					port_found = testAppFrame.searchForPorts();
+					if(!port_found) {
+						return;
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -492,7 +497,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					theropistReady = false;
 					contentPane.setBackground(new Color(240,240,240));
 				}
-				
 			}
 		}
 		
@@ -797,25 +801,32 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(panel_5);
 }
 	
-	public void searchForPorts()
+	public boolean searchForPorts()
 	{
 		ports = CommPortIdentifier.getPortIdentifiers();
 		int i = 0;
-		while (ports.hasMoreElements())
-		{
-
-			CommPortIdentifier curPort = (CommPortIdentifier)ports.nextElement();
-
-			//get only serial ports
-			if (curPort.getPortType() == CommPortIdentifier.PORT_SERIAL)
+		if(false == ports.hasMoreElements()) {
+			System.out.println(" No Ports Found");
+			return false;
+		}
+		else {
+			while (ports.hasMoreElements())
 			{
-				portMap.put(curPort.getName(), curPort);
-				// Add the available port to a comboList for user selection
-				portsAvailable[i] = curPort.getName();
-				i++;
-				//serialPortFound = true;
-				System.out.println(curPort.getName() + "  Ports Found!! Now Connect");
+				CommPortIdentifier curPort = (CommPortIdentifier)ports.nextElement();
+
+				//get only serial ports
+				if (curPort.getPortType() == CommPortIdentifier.PORT_SERIAL)
+				{
+					portMap.put(curPort.getName(), curPort);
+					// Add the available port to a comboList for user selection
+					portsAvailable[i] = curPort.getName();
+					i++;
+					//serialPortFound = true;
+					System.out.println(curPort.getName() + "  Ports Found!! Now Connect");
+				}
 			}
+			
+			return true;
 		}
 	}
 
