@@ -49,6 +49,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 
 
+
 import com.sun.corba.se.spi.orbutil.fsm.Action;
 
 import javax.swing.AbstractAction;
@@ -58,6 +59,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.JLabel;
@@ -182,7 +184,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	private boolean bConnected = false;
 
 	//the timeout value for connecting with the port
-	final static int PORT_CONNECT_TIMEOUT = 200;
+	final static int PORT_CONNECT_TIMEOUT = 2000;
+	final static int TREATMENT_DURATION = 5;
+	private boolean countDownTimerRunning = false;
 
 	//some ascii values for for certain things
 	final static int SPACE_ASCII = 32;
@@ -256,21 +260,35 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         	xyPlot.setBackgroundPaint(gPaint);
 			renderer.setSeriesPaint(0, Color.green);
 			
+			
 			/*
 			 * Start Timer
 			 */
-			timer = new Timer(1000, countDownTimeListener);
-			timer.setInitialDelay(0);
-			countDown = Long.parseLong(txtSetTimeout.getText());
-			countElapsed = 0;
-			timer.start();
-			timerDispPanel.setBackground(new Color(240, 230, 140));
+			if(!countDownTimerRunning && !bTimeOver) {
+				timer = new Timer(1000, countDownTimeListener);
+				timer.setInitialDelay(0);				
+				countDown = TREATMENT_DURATION;
+				countElapsed = 0;
+				timer.start();
+				countDownTimerRunning = true;
+				timerDispPanel.setBackground(new Color(240, 230, 140));
+			}
 		}
 		else {
 			GradientPaint gPaint = new GradientPaint(4.0f, 6.0f, Color.lightGray, 3.0f, 6.0f, Color.lightGray);
           	xyPlot.setBackgroundPaint(gPaint);
-			renderer.setSeriesPaint(0, Color.blue);
+          	if(patientReady) {
+          		renderer.setSeriesPaint(0, Color.blue);
+          	}
+          	else {
+          		renderer.setSeriesPaint(0, Color.black);
+          	}
+			
 			timerDispPanel.setBackground(new Color(240, 240, 240));
+			if(bTimeOver)
+				bTimeOver = false;
+			else
+				bTimeOver = true;
 		}
 		    	
 		xyPlot.setRenderer(renderer);
@@ -511,7 +529,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 																 "COM3", 
 																 "COM4", 
 																 "COM5", 
-																 "COM6"}));
+																 "COM6",
+																 "COM7",
+																 "COM8",
+																 "COM9",
+																 "COM10",
+																 "COM11"}));
 		comboBox.setSelectedIndex(2);
 		comboBox.setBounds(1220, 123, 101, 27);
 		comboBox.addActionListener(new ActionListener() {
@@ -727,6 +750,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				
 				if(countDown == 0) {
 					timer.stop();
+					countDownTimerRunning = false;
 					timerDispPanel.setBackground(new Color(240, 240, 240));
 					bTimeOver = true;
 					
@@ -738,7 +762,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			}
 		};
 		
-		final JButton btnNewButton = new JButton("Patient \r\nReady");
+		final JToggleButton btnNewButton = new JToggleButton("Patient \r\nReady");
+		
 		btnNewButton.setForeground(new Color(34, 139, 34));
 		btnNewButton.setIcon(null);
 		btnNewButton.addActionListener(new ActionListener() {
@@ -751,7 +776,15 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //				timerDispPanel.setBackground(new Color(240, 230, 140));
 				XYItemRenderer renderer = xyPlot.getRenderer();
 				renderer.setSeriesPaint(0, Color.blue);
-				patientReady = true;
+
+				if(patientReady == false) {
+					btnNewButton.setText("NOT Ready");
+					patientReady = true;
+				}
+				else {
+					btnNewButton.setText("Patient \r\nReady");
+					patientReady = false;
+				}
 				contentPane.requestFocus();
 			}
 		});
@@ -837,12 +870,14 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	//an exception is generated
 	public void connect(String connectTo)
 	{
+		System.out.println("I am here");
 		if(connectTo.isEmpty()) {
 			selectedPort = "COM3";
 		}
 		else {
 			selectedPort = connectTo;
 		}
+		System.out.println("Selected " + selectedPort);
 		
 		selectedPortIdentifier = (CommPortIdentifier)portMap.get(selectedPort);
 
@@ -856,6 +891,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			//the method below returns an object of type CommPort
 			commPort = selectedPortIdentifier.open("ABC_Device", PORT_CONNECT_TIMEOUT);
 			//the CommPort object can be casted to a SerialPort object
+			System.out.println("Aftre Open");
 			serialPort = (SerialPort)commPort;
 
 			//for controlling GUI elements
