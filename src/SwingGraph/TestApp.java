@@ -36,13 +36,18 @@ import javax.swing.GroupLayout.Alignment;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYDataImageAnnotation;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.ThermometerPlot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.time.DynamicTimeSeriesCollection;
+import org.jfree.data.time.Second;
+import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -50,6 +55,13 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 
 
+
+
+
+
+
+
+import com.sun.corba.se.impl.presentation.rmi.DynamicStubImpl;
 import com.sun.corba.se.spi.orbutil.fsm.Action;
 
 import javax.swing.AbstractAction;
@@ -86,6 +98,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.PortUnreachableException;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.TooManyListenersException;
@@ -112,13 +126,14 @@ import java.awt.event.KeyEvent;
 
 public class TestApp extends JFrame implements SerialPortEventListener {
 
-	private JPanel contentPane;
+	private static JPanel contentPane;
 	
 	static JFrame frameNewMenu;
 	
 	static TestApp testAppFrame;
 	JPanel timerDispPanel;
 	
+	static SpaceAction spaceAction;
 	String selectedPort;
 	static boolean serialPortFound = false;
 	static boolean patientReady = false;
@@ -139,10 +154,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	java.util.Hashtable<Integer, JLabel> thresholdTable;
 	java.util.Hashtable<Integer, JLabel> thresholdUpperTable;
 	
-	double yVal = 0;
+	double xVal = 0;
 	static XYPlot xyPlot = null;
     static XYSeries xySeries = null;
     private ChartPanel chartPanel_1;
+    
+    private DynamicTimeSeriesCollection dataset;
+    private JFreeChart chart;
     
     public enum CurrentState{
 		INHALE,
@@ -238,6 +256,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					testAppFrame = new TestApp();
 					testAppFrame.setVisible(true);
 					
+					contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
+					contentPane.getActionMap().put("doEnterAction", spaceAction);
+
+					
 					System.out.println("Object created!! Searching for ports now");
 					
 					port_found = false;
@@ -245,6 +267,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					if(!port_found) {
 						return;
 					}
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -252,18 +275,24 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		});
 	}
 
+	void stopTimer() {
+		timer.stop();
+		countDownTimerRunning = false;
+		timerDispPanel.setBackground(new Color(240, 240, 240));
+		bTimeOver = true;
+	}
+/*	
 	public void addPoint(Number x, Number y) {
-    	XYItemRenderer renderer = xyPlot.getRenderer();
-    	//System.out.println("addPoint y = " + y.doubleValue() + "  minThresholdMarker" + minThresholdMarker);
+		XYItemRenderer renderer = xyPlot.getRenderer();
+		//System.out.println("addPoint y = " + y.doubleValue() + "  minThresholdMarker" + minThresholdMarker);
 		if(y.doubleValue() > minThresholdMarker) {
 			GradientPaint gPaint = new GradientPaint(2.0f, 6.0f, Color.lightGray, 2.0f, 6.0f, Color.green);
-        	xyPlot.setBackgroundPaint(gPaint);
+			xyPlot.setBackgroundPaint(gPaint);
 			renderer.setSeriesPaint(0, Color.green);
-			
-			
-			/*
-			 * Start Timer
-			 */
+
+
+			// Start Timer
+
 			if(!countDownTimerRunning && !bTimeOver) {
 				timer = new Timer(1000, countDownTimeListener);
 				timer.setInitialDelay(0);				
@@ -276,7 +305,58 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		}
 		else {
 			GradientPaint gPaint = new GradientPaint(4.0f, 6.0f, Color.lightGray, 3.0f, 6.0f, Color.lightGray);
+			xyPlot.setBackgroundPaint(gPaint);
+			if(patientReady) {
+				renderer.setSeriesPaint(0, Color.blue);
+			}
+			else {
+				renderer.setSeriesPaint(0, Color.black);
+			}
+
+			timerDispPanel.setBackground(new Color(240, 240, 240));
+			if(bTimeOver)
+				bTimeOver = false;
+			else
+				bTimeOver = true;
+		}
+
+		xyPlot.setRenderer(renderer);
+		float[] newData = new float[1];
+		System.out.println("Plotting  " + y.floatValue());
+		newData[0] = y.floatValue();
+		dataset.advanceTime();
+		dataset.appendData(newData);
+	}
+*/	
+	
+	public void addPoint(Number x, Number y) {
+    	XYItemRenderer renderer = xyPlot.getRenderer();
+    	//System.out.println("addPoint y = " + y.doubleValue() + "  minThresholdMarker" + minThresholdMarker);
+		if(y.doubleValue() > minThresholdMarker) {
+			GradientPaint gPaint = new GradientPaint(2.0f, 6.0f, Color.lightGray, 2.0f, 6.0f, Color.green);
+        	xyPlot.setBackgroundPaint(gPaint);
+			renderer.setSeriesPaint(0, Color.green);
+			
+			
+			 //Start Timer
+			 
+			if(!countDownTimerRunning /*&& !bTimeOver */) {
+				timer = new Timer(1000, countDownTimeListener);
+				timer.setInitialDelay(0);				
+				countDown = TREATMENT_DURATION;
+				countElapsed = 0;
+				timer.start();
+				countDownTimerRunning = true;
+				timerDispPanel.setBackground(new Color(240, 230, 140));
+			}
+		}
+		else {
+			GradientPaint gPaint = new GradientPaint(4.0f, 6.0f, Color.lightGray, 3.0f, 6.0f, Color.lightGray);
           	xyPlot.setBackgroundPaint(gPaint);
+          	
+          	if(countDownTimerRunning) {
+      			stopTimer();
+      		}
           	if(patientReady) {
           		renderer.setSeriesPaint(0, Color.blue);
           	}
@@ -290,13 +370,68 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			else
 				bTimeOver = true;
 		}
-		    	
+		
 		xyPlot.setRenderer(renderer);
         xySeries.add(x, y);
     }
 
 	private ChartPanel drawChart() {
-        XYSeriesCollection xySeriesCollection = new XYSeriesCollection();
+
+/*		DynamicTimeSeriesCollection dataset = new DynamicTimeSeriesCollection(1, 3, new Second());
+        
+        dataset.setTimeBase(new Second(0, 0, 0, 21, 9, 2014));
+        dataset.addSeries(new float[1], 0, "Samples");
+        chart = ChartFactory.createTimeSeriesChart(
+            "Samples", "Time", "Samples", dataset, true, true, false);
+        xyPlot = chart.getXYPlot();
+        xyPlot.setDomainCrosshairVisible(true);
+        xyPlot.setRangeCrosshairLockedOnData(true);
+        
+        DateAxis Xaxis = (DateAxis) xyPlot.getDomainAxis();
+        Xaxis.setAutoRange(true);
+        Xaxis.setFixedAutoRange(10000);
+        Xaxis.setDateFormatOverride(new SimpleDateFormat("hh:mm:ss"));
+        final ChartPanel chartPanel = new ChartPanel(chart);
+        add(chartPanel);
+        
+        
+        ValueAxis Yaxis = xyPlot.getRangeAxis();
+        Yaxis.setFixedAutoRange(6.0);
+
+        // Create the renderer
+        XYItemRenderer renderer = xyPlot.getRenderer();
+        renderer.setSeriesPaint(0, Color.blue);
+
+        //NumberAxis domain = (NumberAxis) xyPlot.getDomainAxis();
+        DateAxis domain = (DateAxis) xyPlot.getDomainAxis();
+        domain.setVerticalTickLabels(false);
+        
+        NumberAxis range = (NumberAxis) xyPlot.getRangeAxis();
+        range.setVerticalTickLabels(false);
+
+        chartPanel_1 = new ChartPanel(chart);
+        chartPanel_1.setZoomAroundAnchor(true);
+        chartPanel_1.setMaximumDrawHeight(700);
+        chartPanel_1.setRefreshBuffer(true);
+        chartPanel_1.setLocation(0, 0);
+        chartPanel_1.setSize(1200, 519);
+        chartPanel_1.setLayout(new BorderLayout(0, 0));
+               
+        //NumberAxis xAxis = (NumberAxis) xyPlot.getDomainAxis();
+        DateAxis xAxis = (DateAxis) xyPlot.getDomainAxis();
+        NumberAxis yAxis = (NumberAxis) xyPlot.getRangeAxis();
+        
+        // Set range for Y axis values
+        yAxis.setRange(-3.0, 4.0);
+                        	        
+        xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+        xyPlot.setDomainAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+//        xyPlot.addRangeMarker(marker);
+        
+        return chartPanel_1;*/
+
+        
+		XYSeriesCollection xySeriesCollection = new XYSeriesCollection();
         xySeries = new XYSeries("");
 
         xySeriesCollection.addSeries(xySeries);
@@ -335,7 +470,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         NumberAxis xAxis = (NumberAxis) xyPlot.getDomainAxis();
         NumberAxis yAxis = (NumberAxis) xyPlot.getRangeAxis();
         
-        /* Set range for Y axis values */
+        // Set range for Y axis values
         yAxis.setRange(-3.0, 4.0);
                         	        
         xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -343,6 +478,20 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //        xyPlot.addRangeMarker(marker);
         
         return chartPanel_1;
+        
+	}
+	
+	class SpaceAction extends AbstractAction {	
+		public void actionPerformed(ActionEvent arg0) {
+			System.out.println("Finally spaceAction !!");
+			if(! theropistReady) {
+				theropistReady = true;
+				contentPane.setBackground(Color.GREEN);
+			} else {
+				theropistReady = false;
+				contentPane.setBackground(new Color(240,240,240));
+			}
+		}
 	}
 	/**
 	 * Create the frame.
@@ -504,23 +653,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		ChartPanel chartPanel = drawChart();
 		contentPane.add(chartPanel);
 		contentPane.add(chartPanel_1);
-	
-		class SpaceAction extends AbstractAction {	
-			public void actionPerformed(ActionEvent arg0) {
-				System.out.println("Finally spaceAction !!");
-				if(! theropistReady) {
-					theropistReady = true;
-					contentPane.setBackground(Color.GREEN);
-				} else {
-					theropistReady = false;
-					contentPane.setBackground(new Color(240,240,240));
-				}
-			}
-		}
 		
-		SpaceAction spaceAction = new SpaceAction();
-		contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
-		contentPane.getActionMap().put("doEnterAction", spaceAction);
+		
+		spaceAction = new SpaceAction();
+//		contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
+//		contentPane.getActionMap().put("doEnterAction", spaceAction);
 		
 		final JComboBox comboBox = new JComboBox();
 		
@@ -747,12 +884,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				// TODO Auto-generated method stub
 				
 				lblTimeRemaining.setText(String.valueOf(countDown));
-				
+				System.out.println("Coming here to print TimeRemaining");
 				if(countDown == 0) {
-					timer.stop();
-					countDownTimerRunning = false;
-					timerDispPanel.setBackground(new Color(240, 240, 240));
-					bTimeOver = true;
+					stopTimer();
+//					timer.stop();
+//					countDownTimerRunning = false;
+//					timerDispPanel.setBackground(new Color(240, 240, 240));
+//					bTimeOver = true;
 					
 				}else {
 					countDown--;
@@ -840,6 +978,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		int i = 0;
 		if(false == ports.hasMoreElements()) {
 			System.out.println(" No Ports Found");
+			//custom title, warning icon
+
 			return false;
 		}
 		else {
@@ -859,6 +999,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				}
 			}
 			
+			if(i == 0) {
+				JOptionPane.showMessageDialog(testAppFrame,
+					    "NO COM Port Found, Check Bluetooth Connectivity",
+					    "Inane warning",
+					    JOptionPane.WARNING_MESSAGE);
+			}
 			return true;
 		}
 	}
@@ -870,7 +1016,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	//an exception is generated
 	public void connect(String connectTo)
 	{
-		System.out.println("I am here");
+		
 		if(connectTo.isEmpty()) {
 			selectedPort = "COM3";
 		}
@@ -891,7 +1037,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			//the method below returns an object of type CommPort
 			commPort = selectedPortIdentifier.open("ABC_Device", PORT_CONNECT_TIMEOUT);
 			//the CommPort object can be casted to a SerialPort object
-			System.out.println("Aftre Open");
+			
 			serialPort = (SerialPort)commPort;
 
 			//for controlling GUI elements
@@ -913,7 +1059,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			testAppFrame.initListener();
 			System.out.println("Work Done, Deinit");
 
-			System.out.println("Let's Go home");
+			
 		}
 		catch (PortInUseException e)
 		{
@@ -1032,8 +1178,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		/*
 		 * Start Web Server to send serial port data to
 		 */
-
-
 		StringBuffer s1_number = new StringBuffer();
 		char c;
 		boolean isNegative = false;
@@ -1068,7 +1212,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			}
 			//System.out.print("\n" + p);
 
-			System.out.print("IDLE pxxx ->" + p + "\n");
+			
 			double dp = (p/60);
 			double volume = dp/(60*55.57);
 			
@@ -1091,9 +1235,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				//System.out.print(",TO," + sample_time_elapsed_counter + "," + cum_volume + "\n");
 								
 				if(cum_volume > 0)
-					testAppFrame.addPoint(yVal += 0.2, cum_volume);		
+					testAppFrame.addPoint(xVal += 0.2, cum_volume);		
 				else
-					testAppFrame.addPoint(yVal += 0.2, 0);
+					testAppFrame.addPoint(xVal += 0.2, 0);
 				
 				sample_time_elapsed = 0;
 				sample_time_start = System.nanoTime();
@@ -1110,12 +1254,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				cum_volume -= volume;
 //				cum_volume = 0;
 				sample_time_elapsed_counter += SAMPLE_CUMULATION_TIMEOUT;
-
-				//valuePooListDoub.add(cum_volume);
 				if(cum_volume > 0)
-					testAppFrame.addPoint(yVal += 0.2, cum_volume);
+					testAppFrame.addPoint(xVal += 0.2, cum_volume);
 				else
-					testAppFrame.addPoint(yVal += 0.2, 0);
+					testAppFrame.addPoint(xVal += 0.2, 0);
 				
 				//cum_volume = 0;
 				sample_time_elapsed = 0;
