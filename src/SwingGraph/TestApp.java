@@ -209,6 +209,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	String logText = "";
 	private JTextField txtSetTimeout;
 	
+	public String printPName = new String();
+	public JLabel lblPrintPatName;
+	
+	public String printPID = new String();
+	public JLabel lblPrintPatID;
+	
+	public int    printTID;
+	public JLabel lblPrintTestID;
+	
+	public int    printBHT;
+	public JLabel label_2 = new JLabel("New label");
+	
 	/*
 	 * Menu data structures
 	 */
@@ -531,7 +543,19 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					fileOpened = fc.getSelectedFile();
-					System.out.println("Opened " + fileOpened.getName());
+					ObjectSerializationDemo impl = new ObjectSerializationDemo();
+					
+			    	impl.readData(fileOpened.getName(), 1); 
+			    	System.out.println("Open ");
+			    	System.out.println( impl.getPatName());
+			    	System.out.println( impl.getPatID());
+			    	System.out.println( impl.getTestID());
+			    	
+			    	
+			    	lblPrintPatName.setText(impl.getPatName());
+			    	lblPrintPatID.setText(impl.getPatID());
+			    	lblPrintTestID.setText(Integer.toString(impl.getTestID()));
+//					System.out.println("Opened " + fileOpened.getName());
 				}
 			}
 		});
@@ -783,13 +807,33 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		lblPatient.setBounds(10, 46, 80, 14);
 		panel.add(lblPatient);
 		
-		JLabel lblType = new JLabel("Type");
+		JLabel lblType = new JLabel("Test Number");
 		lblType.setBounds(10, 71, 80, 14);
 		panel.add(lblType);
 		
 		JLabel lblOngoingSession = new JLabel("Ongoing Session");
 		lblOngoingSession.setBounds(10, 96, 112, 14);
 		panel.add(lblOngoingSession);
+		
+		lblPrintPatName = new JLabel("_________________");
+		lblPrintPatName.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblPrintPatName.setBounds(100, 21, 146, 14);
+		panel.add(lblPrintPatName);
+		
+		lblPrintPatID = new JLabel("_________________");
+		lblPrintPatID.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblPrintPatID.setBounds(100, 46, 146, 14);
+		panel.add(lblPrintPatID);
+		
+		lblPrintTestID = new JLabel("_________________");
+		lblPrintTestID.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblPrintTestID.setBounds(100, 71, 146, 14);
+		panel.add(lblPrintTestID);
+		
+		label_2 = new JLabel("_________________");
+		label_2.setFont(new Font("Tahoma", Font.BOLD, 11));
+		label_2.setBounds(100, 96, 146, 14);
+		panel.add(label_2);
 		
 		JPanel panel_1 = new JPanel();
 

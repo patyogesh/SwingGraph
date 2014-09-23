@@ -26,6 +26,7 @@ public class NewMenuWindow extends JFrame {
 	private JTextField txtPatName;
 	private JTextField txtPatID;
 	private JTextField txtTestID;
+	private JTextField textBreathHoldTime;
 
 	/**
 	 * Launch the application.
@@ -89,7 +90,7 @@ public class NewMenuWindow extends JFrame {
 		JButton btnNewButton = new JButton("Add");
 		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 14));
 		btnNewButton.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\1409026030_add.png"));
-		btnNewButton.setBounds(99, 160, 95, 33);
+		btnNewButton.setBounds(99, 179, 95, 33);
 		panel.add(btnNewButton);
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -98,18 +99,23 @@ public class NewMenuWindow extends JFrame {
 		    	 */
 				if(txtPatName.getText().isEmpty() &&
 				   txtPatID.getText().isEmpty() &&
-				   txtTestID.getText().isEmpty()) {
+				   txtTestID.getText().isEmpty() &&
+				   textBreathHoldTime.getText().isEmpty()) {
 					JOptionPane.showMessageDialog(null, "Please fill in Patient and Test Info !!");					
 				}
 				else if(txtPatName.getText().isEmpty() ||
 						   txtPatID.getText().isEmpty() ||
-						   txtTestID.getText().isEmpty()) {
+						   txtTestID.getText().isEmpty() ||
+						   textBreathHoldTime.getText().isEmpty()) {
 					JOptionPane.showMessageDialog(null, "Please do not leave any field blank !!");
 				}
 				ObjectSerializationDemo impl = new ObjectSerializationDemo();
+				
 		    	impl.writeData(txtPatName.getText(), 
 		    				   txtPatID.getText(),
+		    				   (int) Long.parseLong(textBreathHoldTime.getText()),
 		    				   (int) Long.parseLong(txtTestID.getText()));
+		    	
 		    	dispose();
 			}
 		});
@@ -117,8 +123,22 @@ public class NewMenuWindow extends JFrame {
 		JButton btnCancel = new JButton("Cancel");
 		btnCancel.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\1409026080_101.png"));
 		btnCancel.setFont(new Font("Tahoma", Font.BOLD, 13));
-		btnCancel.setBounds(239, 160, 95, 33);
+		btnCancel.setBounds(239, 180, 95, 33);
 		panel.add(btnCancel);
+		
+		JLabel lblBreathHoldTime = new JLabel("Breath Hold Time");
+		lblBreathHoldTime.setBounds(10, 143, 102, 23);
+		panel.add(lblBreathHoldTime);
+		
+		textBreathHoldTime = new JTextField();
+		textBreathHoldTime.setColumns(10);
+		textBreathHoldTime.setBounds(99, 144, 57, 20);
+		panel.add(textBreathHoldTime);
+		
+		JLabel lblseconds = new JLabel("(Seconds)");
+		lblseconds.setHorizontalAlignment(SwingConstants.CENTER);
+		lblseconds.setBounds(156, 141, 73, 23);
+		panel.add(lblseconds);
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				dispose();

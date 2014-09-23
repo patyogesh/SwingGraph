@@ -6,7 +6,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.util.Scanner;
 import java.util.Vector;
+
+import javax.swing.JLabel;
 
 /**************************************************
  * 
@@ -23,10 +26,11 @@ class SerializablePatient implements Serializable {
     int 	breathHoldTime;
     int     testNumber;
 
-    SerializablePatient(String name, String ID, /*int bht,*/ int testNumber) {
+    SerializablePatient(String name, String ID, int bht, int testNumber) {
         this.name = name;
         this.ID = ID;
-       // this.breathHoldTime = bht;
+        this.breathHoldTime = bht;
+        this.testNumber = testNumber;
     }
 
     public void showDetails() {
@@ -38,22 +42,54 @@ class SerializablePatient implements Serializable {
     }
 }
 
-class ObjectSerializationDemo{
-    void writeData(String name, String patientID, /* int breathHoldTime, */ int testNumber) {
-        SerializablePatient db = new SerializablePatient(name, patientID, /*breathHoldTime, */ testNumber);
+class ObjectSerializationDemo /*extends TestApp */{
+    String 	name;
+    String 	ID;
+    int 	breathHoldTime;
+    int     testNumber;
+    
+    void setPatName(String n) {
+    	name = n;
+    }
+    String getPatName() {
+    	return name;
+    }
+    
+    void setPatID(String pid) {
+    	ID = pid;
+    }
+    String getPatID() {
+    	return ID;
+    }
+    
+    void setBreathHoldTime(int bht) {
+    	breathHoldTime = bht;
+    }
+    int getBreathHoldTime() {
+    	return breathHoldTime;
+    }
+    
+    void setTestID(int tid) {
+    	testNumber = tid;
+    }
+    int getTestID() {
+    	return testNumber;
+    }
+    
+    void writeData(String name, String patientID, int breathHoldTime, int testNumber) {
         try {
         	Path dirPath = FileSystems.getDefault().getPath("C:/ABC Files/"+name);
         	if(false == Files.isDirectory(dirPath)) {
         		Files.createDirectory(dirPath);
         	}
         	
-            //FileOutputStream fileName = new FileOutputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+"txt");       
+            FileOutputStream fileName = new FileOutputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+".txt");       
             
             try {
-            	PrintStream out = new PrintStream(new FileOutputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+".txt"));
+            	PrintStream out = new PrintStream(fileName);
             	out.append(name).append("\t").
             		append(patientID).append("\t").
-            		/* append(String.valueOf(breathHoldTime)).append("\t"). */
+            		append(String.valueOf(breathHoldTime)).append("\t").
             		append(String.valueOf(testNumber));
             } catch (Exception e) {
             	e.printStackTrace();
@@ -63,35 +99,49 @@ class ObjectSerializationDemo{
         	e.printStackTrace();
         }
     }
-     void readData(String name, int testNumber) {
-        try {
-            FileInputStream in = new FileInputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+"txt");
-            try {
-                ObjectInputStream sin = new ObjectInputStream(in);
-                try {
-                    SerializablePatient se = (SerializablePatient) sin
-                            .readObject();
-                    se.showDetails();
+    
+    void readData(String name, int testNumber) {
+    	try {
+    		try {
+    			Path dirPath = FileSystems.getDefault().getPath("C:/ABC Files/"+name);
+    			if(false == Files.isDirectory(dirPath)) {
+    				System.out.println("Record Does not Exist, Create New one !");
+    			}
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
 
-                    sin.close();
+    		System.out.println("Record Exists");
+    		FileInputStream in = new FileInputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+".txt");
+    		System.out.println("File to Open : " + "C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+".txt");
 
-                } catch (Exception e) {
-                        e.printStackTrace();
-                }
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-        
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-     }
+    		Scanner sc = new Scanner(new BufferedReader(new FileReader("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+".txt")));
+    		
+    		if(sc.hasNext()) {  			
+    			setPatName(sc.next());
+    		}
+    		if(sc.hasNext()) {
+    			setPatID(sc.next());    			
+    		}
+    		if(sc.hasNext()) {
+    			setBreathHoldTime(sc.nextInt());
+    		}
+    		if(sc.hasNext()) {
+    			setTestID(sc.nextInt());
+    		}
+    		
+    		
+
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
 
      //Driver is here
-//    public static void main(String[] args) {
-//        ObjectSerializationDemo impl = new ObjectSerializationDemo();
-//        impl.writeData();
-//        impl.readData();
-//
-//    }
+/*    public static void main(String[] args) {
+        ObjectSerializationDemo impl = new ObjectSerializationDemo();
+        impl.writeData("Jo","j123", 30, 1);
+        impl.readData("Jo", 1);
+
+    }*/
 }
