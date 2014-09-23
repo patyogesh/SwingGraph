@@ -61,6 +61,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 
 
+
 import com.sun.corba.se.impl.presentation.rmi.DynamicStubImpl;
 import com.sun.corba.se.spi.orbutil.fsm.Action;
 
@@ -161,6 +162,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
     
     private DynamicTimeSeriesCollection dataset;
     private JFreeChart chart;
+    JComboBox<String> comboBox;
     
     public enum CurrentState{
 		INHALE,
@@ -186,7 +188,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	private Enumeration ports = null;
 	//map the port names to CommPortIdentifiers
 	private HashMap portMap = new HashMap();
-	String[] portsAvailable = new String[5];
+	
 
 	//this is the object that contains the opened port
 	private CommPortIdentifier selectedPortIdentifier = null;
@@ -659,7 +661,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //		contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
 //		contentPane.getActionMap().put("doEnterAction", spaceAction);
 		
-		final JComboBox comboBox = new JComboBox();
+		/*
+		comboBox = new JComboBox();
+		
+		
 		
 		comboBox.setModel(new DefaultComboBoxModel(new String[] {"COM1", 
 																 "COM2", 
@@ -682,6 +687,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			}
 		});
 		contentPane.add(comboBox);
+		
+		*/
 		
 		final ValueMarker markerThresholdWindowTop = new ValueMarker(maxThresholdMarker);  // position is the value on the axis
 		/* Draw Threshold Line */ 
@@ -974,8 +981,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	
 	public boolean searchForPorts()
 	{
+		String[] portsAvailable = new String[5];
 		ports = CommPortIdentifier.getPortIdentifiers();
 		int i = 0;
+		
 		if(false == ports.hasMoreElements()) {
 			System.out.println(" No Ports Found");
 			//custom title, warning icon
@@ -983,6 +992,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			return false;
 		}
 		else {
+			
 			while (ports.hasMoreElements())
 			{
 				CommPortIdentifier curPort = (CommPortIdentifier)ports.nextElement();
@@ -1005,6 +1015,22 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					    "Inane warning",
 					    JOptionPane.WARNING_MESSAGE);
 			}
+			
+			
+			comboBox = new JComboBox();
+
+			comboBox.setModel(new DefaultComboBoxModel(portsAvailable));
+			comboBox.setSelectedIndex(2);
+			comboBox.setBounds(1220, 123, 101, 27);
+			comboBox.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					if(testAppFrame.getConnected() == false) {
+						testAppFrame.connect(comboBox.getSelectedItem().toString());
+					}
+				}
+			});
+			contentPane.add(comboBox);
+			
 			return true;
 		}
 	}
