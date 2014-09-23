@@ -51,17 +51,6 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-
-
-
-
-
-
-
-
-
-
-
 import com.sun.corba.se.impl.presentation.rmi.DynamicStubImpl;
 import com.sun.corba.se.spi.orbutil.fsm.Action;
 
@@ -162,7 +151,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
     
     private DynamicTimeSeriesCollection dataset;
     private JFreeChart chart;
+    
     JComboBox<String> comboBox;
+    String[] portsAvailable = new String[5];
     
     public enum CurrentState{
 		INHALE,
@@ -265,8 +256,14 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					System.out.println("Object created!! Searching for ports now");
 					
 					port_found = false;
+					
 					port_found = testAppFrame.searchForPorts();
+					
 					if(!port_found) {
+						JOptionPane.showMessageDialog(testAppFrame,
+							    "NO COM Port Found, Check Bluetooth Connectivity",
+							    "Inane warning",
+							    JOptionPane.WARNING_MESSAGE);
 						return;
 					}
 					
@@ -585,7 +582,14 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		mntmNewMenuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if(testAppFrame.getConnected() == false) {
-					testAppFrame.connect("COM3");
+					//By default select one of the ports available
+					int connectStatus = testAppFrame.connect(portsAvailable[1]);
+					if(connectStatus == 1) {
+						JOptionPane.showMessageDialog(testAppFrame,
+							    "NO COM Port Found, Check Bluetooth Connectivity",
+							    "Inane warning",
+							    JOptionPane.WARNING_MESSAGE);
+					}
 				}
 			}
 		});
@@ -660,36 +664,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		spaceAction = new SpaceAction();
 //		contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
 //		contentPane.getActionMap().put("doEnterAction", spaceAction);
-		
-		/*
-		comboBox = new JComboBox();
-		
-		
-		
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"COM1", 
-																 "COM2", 
-																 "COM3", 
-																 "COM4", 
-																 "COM5", 
-																 "COM6",
-																 "COM7",
-																 "COM8",
-																 "COM9",
-																 "COM10",
-																 "COM11"}));
-		comboBox.setSelectedIndex(2);
-		comboBox.setBounds(1220, 123, 101, 27);
-		comboBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if(testAppFrame.getConnected() == false) {
-					testAppFrame.connect(comboBox.getSelectedItem().toString());
-				}
-			}
-		});
-		contentPane.add(comboBox);
-		
-		*/
-		
+			
 		final ValueMarker markerThresholdWindowTop = new ValueMarker(maxThresholdMarker);  // position is the value on the axis
 		/* Draw Threshold Line */ 
         markerThresholdWindowTop.setPaint(Color.black);
@@ -981,7 +956,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	
 	public boolean searchForPorts()
 	{
-		String[] portsAvailable = new String[5];
 		ports = CommPortIdentifier.getPortIdentifiers();
 		int i = 0;
 		
@@ -1009,11 +983,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				}
 			}
 			
-			if(i == 0) {
-				JOptionPane.showMessageDialog(testAppFrame,
-					    "NO COM Port Found, Check Bluetooth Connectivity",
-					    "Inane warning",
-					    JOptionPane.WARNING_MESSAGE);
+			if(i == 0) {				
+				return false;
 			}
 			
 			
@@ -1025,7 +996,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			comboBox.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					if(testAppFrame.getConnected() == false) {
-						testAppFrame.connect(comboBox.getSelectedItem().toString());
+						int connectStatus = testAppFrame.connect(comboBox.getSelectedItem().toString());
+						if(connectStatus == 1) {
+							JOptionPane.showMessageDialog(testAppFrame,
+								    "NO COM Port Found, Check Bluetooth Connectivity",
+								    "Inane warning",
+								    JOptionPane.WARNING_MESSAGE);
+						}
 					}
 				}
 			});
@@ -1040,11 +1017,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	//pre: ports are already found by using the searchForPorts method
 	//post: the connected comm port is stored in commPort, otherwise,
 	//an exception is generated
-	public void connect(String connectTo)
+	public int connect(String connectTo)
 	{
 		
 		if(connectTo.isEmpty()) {
-			selectedPort = "COM3";
+			return 1;
 		}
 		else {
 			selectedPort = connectTo;
@@ -1084,16 +1061,27 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			System.out.println("Initing Listeners");
 			testAppFrame.initListener();
 			System.out.println("Work Done, Deinit");
-
-			
+			return 0;
 		}
 		catch (PortInUseException e)
 		{
 			logText = selectedPort + " is in use. (" + e.toString() + ")";
+			
+			JOptionPane.showMessageDialog(testAppFrame,
+					selectedPort + " is in use. (" + e.toString() + ")",
+				    "Inane warning",
+				    JOptionPane.WARNING_MESSAGE);
+			return -1;
 		}
 		catch (Exception e)
 		{
 			logText = "Failed to open " + selectedPort + "(" + e.toString() + ")";
+			
+			JOptionPane.showMessageDialog(testAppFrame,
+					"Failed to open " + selectedPort + "(" + e.toString() + ")",
+				    "Inane warning",
+				    JOptionPane.WARNING_MESSAGE);
+			return -1;
 		}
 	}
 
