@@ -130,10 +130,16 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	static boolean theropistReady = false;
 	
 	private JLabel TimeElapsed;
-	public  Timer  timer;
+	public  Timer  timerCountDown;
+	public  Timer  timerToClearOff;
+	boolean clearOffTimerRunning = false;
+	
 	ActionListener countDownTimeListener;
+	ActionListener clearOffTimerListener;
 	long countDown = 0;
 	public long countElapsed = 0;
+	long clearOffCountDown = 0;
+
 	boolean bTimeOver = false;
 	JLabel lblTimeRemaining;
 	
@@ -197,6 +203,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	//the timeout value for connecting with the port
 	final static int PORT_CONNECT_TIMEOUT = 2000;
 	final static int TREATMENT_DURATION = 5;
+	final static int SCREENFUL_DURATION = 30;
 	private boolean countDownTimerRunning = false;
 
 	//some ascii values for for certain things
@@ -209,17 +216,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	String logText = "";
 	private JTextField txtSetTimeout;
 	
-	public String printPName = new String();
+	
 	public JLabel lblPrintPatName;
-	
-	public String printPID = new String();
 	public JLabel lblPrintPatID;
-	
-	public int    printTID;
 	public JLabel lblPrintTestID;
-	
-	public int    printBHT;
-	public JLabel label_2 = new JLabel("New label");
+	public JLabel label_2;
 	
 	/*
 	 * Menu data structures
@@ -286,11 +287,21 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		});
 	}
 
-	void stopTimer() {
-		timer.stop();
+	void stopCountDownTimer() {
+		timerCountDown.stop();
 		countDownTimerRunning = false;
 		timerDispPanel.setBackground(new Color(240, 240, 240));
 		bTimeOver = true;
+	}
+	
+	void stopClearOffTimer() {
+		timerToClearOff.stop();
+		System.out.println("Clearing OUT clearOffTimer");
+		clearOffTimerRunning = false;
+		/*
+		 * This is to clear off the plot so far 
+		 */
+		xySeries.clear();
 	}
 /*	
 	public void addPoint(Number x, Number y) {
@@ -305,11 +316,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			// Start Timer
 
 			if(!countDownTimerRunning && !bTimeOver) {
-				timer = new Timer(1000, countDownTimeListener);
-				timer.setInitialDelay(0);				
+				timerCountDown = new Timer(1000, countDownTimeListener);
+				timerCountDown.setInitialDelay(0);				
 				countDown = TREATMENT_DURATION;
 				countElapsed = 0;
-				timer.start();
+				timerCountDown.start();
 				countDownTimerRunning = true;
 				timerDispPanel.setBackground(new Color(240, 230, 140));
 			}
@@ -352,11 +363,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			 //Start Timer
 			 
 			if(!countDownTimerRunning /*&& !bTimeOver */) {
-				timer = new Timer(1000, countDownTimeListener);
-				timer.setInitialDelay(0);				
+				timerCountDown = new Timer(1000, countDownTimeListener);
+				timerCountDown.setInitialDelay(0);				
 				countDown = TREATMENT_DURATION;
 				countElapsed = 0;
-				timer.start();
+				timerCountDown.start();
 				countDownTimerRunning = true;
 				timerDispPanel.setBackground(new Color(240, 230, 140));
 			}
@@ -366,7 +377,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
           	xyPlot.setBackgroundPaint(gPaint);
           	
           	if(countDownTimerRunning) {
-      			stopTimer();
+      			stopCountDownTimer();
       		}
           	if(patientReady) {
           		renderer.setSeriesPaint(0, Color.blue);
@@ -462,7 +473,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
         // Create the renderer
         XYItemRenderer renderer = xyPlot.getRenderer();
-        renderer.setSeriesPaint(0, Color.blue);
+        renderer.setSeriesPaint(1, Color.blue);
 
         NumberAxis domain = (NumberAxis) xyPlot.getDomainAxis();
         domain.setVerticalTickLabels(false);
@@ -912,17 +923,25 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				lblTimeRemaining.setText(String.valueOf(countDown));
 				System.out.println("Coming here to print TimeRemaining");
 				if(countDown == 0) {
-					stopTimer();
-//					timer.stop();
-//					countDownTimerRunning = false;
-//					timerDispPanel.setBackground(new Color(240, 240, 240));
-//					bTimeOver = true;
-					
+					stopCountDownTimer();
 				}else {
 					countDown--;
 					countElapsed++;
 				}
 				
+			}
+		};
+		
+		clearOffTimerListener = new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if(clearOffCountDown == 0) {
+					stopClearOffTimer();
+				} else {
+					System.out.println("One Down " + clearOffCountDown);
+					clearOffCountDown --;
+				}
 			}
 		};
 		
@@ -932,11 +951,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		btnNewButton.setIcon(null);
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-//				timer = new Timer(1000, countDownTimeListener);
+//				timerCountDown = new Timer(1000, countDownTimeListener);
 //				timer.setInitialDelay(0);
 //				countDown = Long.parseLong(txtSetTimeout.getText());
 //				countElapsed = 0;
-//				timer.start();
+//				timerCountDown.start();
 //				timerDispPanel.setBackground(new Color(240, 230, 140));
 				XYItemRenderer renderer = xyPlot.getRenderer();
 				renderer.setSeriesPaint(0, Color.blue);
@@ -1023,7 +1042,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					portsAvailable[i] = curPort.getName();
 					i++;
 					//serialPortFound = true;
-					System.out.println(curPort.getName() + "  Ports Found!! Now Connect");
+					System.out.println(curPort.getName() + "  Ports Found!!");
 				}
 			}
 			
@@ -1188,6 +1207,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			output.close();
 			setConnected(false);
 
+			if(countDownTimerRunning) {
+				stopCountDownTimer();
+			}
+			
+			if(clearOffTimerRunning) {
+				stopClearOffTimer();
+			}
 			logText = "Disconnected.";
 		}
 		catch (Exception e)
@@ -1222,6 +1248,16 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				//System.out.print("\nRead ->>>" + recvdMsg);
 
 				parseRecvdMsg(recvdMsg);
+				
+				if(clearOffTimerRunning == false) {
+					System.out.print("\nRead ->>>" + recvdMsg + " And Timer STARTED");
+					timerToClearOff = new Timer(1000, clearOffTimerListener);
+					timerToClearOff.setInitialDelay(0);				
+					clearOffCountDown = SCREENFUL_DURATION;
+					timerToClearOff.start();
+					clearOffTimerRunning = true;
+				}
+				
 			}
 			catch (Exception e)
 			{
@@ -1292,10 +1328,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				sample_time_elapsed_counter += SAMPLE_CUMULATION_TIMEOUT;
 				//System.out.print(",TO," + sample_time_elapsed_counter + "," + cum_volume + "\n");
 								
-				if(cum_volume > 0)
-					testAppFrame.addPoint(xVal += 0.2, cum_volume);		
-				else
-					testAppFrame.addPoint(xVal += 0.2, 0);
+				testAppFrame.addPoint(xVal += 0.2, cum_volume);
+				
+				// Commeing followin if..else block to allow -ve value plot
+//				if(cum_volume > 0)
+//					testAppFrame.addPoint(xVal += 0.2, cum_volume);		
+//				else
+//					testAppFrame.addPoint(xVal += 0.2, 0);
 				
 				sample_time_elapsed = 0;
 				sample_time_start = System.nanoTime();
@@ -1312,10 +1351,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				cum_volume -= volume;
 //				cum_volume = 0;
 				sample_time_elapsed_counter += SAMPLE_CUMULATION_TIMEOUT;
-				if(cum_volume > 0)
-					testAppFrame.addPoint(xVal += 0.2, cum_volume);
-				else
-					testAppFrame.addPoint(xVal += 0.2, 0);
+				
+				testAppFrame.addPoint(xVal += 0.2, cum_volume);
+				// Commeing followin if..else block to allow -ve value plot
+//				if(cum_volume > 0)
+//					testAppFrame.addPoint(xVal += 0.2, cum_volume);
+//				else
+//					testAppFrame.addPoint(xVal += 0.2, 0);
 				
 				//cum_volume = 0;
 				sample_time_elapsed = 0;
