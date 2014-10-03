@@ -20,7 +20,7 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-public class SetSliderScaleNewMenuWindow extends JFrame {
+public class SetSliderScaleNewMenuWindow extends JFrame{
 
 	private JPanel contentPane;
 	private JTextField textThresholdStart;
@@ -32,22 +32,45 @@ public class SetSliderScaleNewMenuWindow extends JFrame {
 	private JTextField textThresholdScale;
 	double  thresholdScale;
 
-	public SetSliderScaleNewMenuWindow(double start, double end, double scale) {
+	boolean sliderUpdateRequired;
+	
+	public void setDefaultParams(double start, double end, double scale) {
 		thresholdStart = start;
 		thresholdEnd = end;
 		thresholdScale = scale;
+		sliderUpdateRequired = false;
+	}
+	
+	public void setThresholdStart(double start) {
+		thresholdStart = start;
 	}
 	
 	public double getThresholdStart() {
 		return thresholdStart;
 	}
 	
+	public void setThresholdEnd(double end) {
+		thresholdEnd = end;
+	}
+	
 	public double getThresholdEnd() {
 		return thresholdEnd;
 	}
 	
+	public void setThresholdScale(double scale) {
+		thresholdScale = scale;
+	}
+	
 	public double getThresholdScale() {
 		return thresholdScale;
+	}
+	
+	public void setSliderUpdateRequired() {
+		sliderUpdateRequired = true;
+	}
+	
+	public boolean getSliderUpdateRequired() {
+		return sliderUpdateRequired;
 	}
 	/**
 	 * Launch the application.
@@ -109,6 +132,11 @@ public class SetSliderScaleNewMenuWindow extends JFrame {
 		JButton button = new JButton("Ok");
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				setThresholdStart(Double.parseDouble(textThresholdStart.getText()));
+				setThresholdEnd(Double.parseDouble(textThresholdEnd.getText()));
+				setThresholdScale(Double.parseDouble(textThresholdScale.getText()));
+				
+				setSliderUpdateRequired();
 				dispose();
 			}
 		});

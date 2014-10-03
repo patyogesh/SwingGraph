@@ -55,6 +55,7 @@ import org.jfree.util.ShapeUtilities;
 
 import com.sun.corba.se.impl.presentation.rmi.DynamicStubImpl;
 import com.sun.corba.se.spi.orbutil.fsm.Action;
+import com.sun.javafx.scene.control.skin.SliderSkin;
 
 import javax.swing.AbstractAction;
 //import test.gui.CurrentState;
@@ -155,7 +156,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	long calibbrationCountDown = 0;
 	final static int CALIBRATION_WINDOW_SIZE = 256;
 	double calibratedVal = 0;
-	double[] calibWindow = new double[CALIBRATION_WINDOW_SIZE];
+	int[][] calibWindow = new int[CALIBRATION_WINDOW_SIZE][2];
 	boolean  calibrationDone = false;
 
 	boolean bTimeOver = false;
@@ -291,10 +292,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				try {				
 					testAppFrame = new TestApp();
 					testAppFrame.setVisible(true);
-					
+							
 					contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
 					contentPane.getActionMap().put("doEnterAction", spaceAction);
-
 					
 					System.out.println("Object created!! Searching for ports now");
 					
@@ -749,7 +749,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		lblSetMax.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSetMax.setFont(new Font("Tahoma", Font.BOLD, 11));
 		
-		sliderScaleWin = new SetSliderScaleNewMenuWindow(0.0, 3.5, 0.5);
+		sliderScaleWin = new SetSliderScaleNewMenuWindow();
+		sliderScaleWin.setDefaultParams(0.0, 3.5, 0.5);
+		
 		axisScaleWin = new SetAxisScaleMenuWindow();
 				
 		ChartPanel chartPanel = drawChart();
@@ -792,23 +794,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		
 		thresholdTable = new java.util.Hashtable<Integer, JLabel>();
 
-		double scaleUnit = sliderScaleWin.getThresholdEnd();
-		thresholdTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
+		drawSlider(sliderScaleWin, thresholdTable);
 			
 		sliderMINThreshold.setLabelTable(thresholdTable);
 		sliderMINThreshold.setEnabled(false);
@@ -841,23 +827,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		
 		thresholdUpperTable = new java.util.Hashtable<Integer, JLabel>();
 
-		scaleUnit = sliderScaleWin.getThresholdEnd();
-		thresholdUpperTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdUpperTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
+		drawSlider(sliderScaleWin, thresholdUpperTable);
 		
 		sliderUpperThreshold.setLabelTable(thresholdUpperTable);
 		sliderUpperThreshold.setEnabled(false);
@@ -1113,6 +1083,30 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		panel_5.setBounds(1210, 363, 142, 156);
 		contentPane.add(panel_5);
 }
+	
+	public void drawSlider(SetSliderScaleNewMenuWindow sliderWin,
+			java.util.Hashtable<Integer, JLabel> thresholdTable) 
+	{
+		double scaleUnit = sliderScaleWin.getThresholdEnd();
+		System.out.println("thresh " + scaleUnit);
+		thresholdTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+
+	}
 	
 	public boolean searchForPorts()
 	{
@@ -1421,31 +1415,46 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			if(isNegative == true) {
 				p = (-1) * p;
 			}
-			
+			System.out.print("\n p --> " + p);
 			if(calibbrationCountDown > 0) {
-				calibWindow[(int)Math.abs(p)] ++;
-				p -= Math.abs(p);				
+				calibWindow[(int)Math.abs(p)][0] ++;
+				
+				if(isNegative) {
+					calibWindow[(int)Math.abs(p)][1] = 1;
+				} 
+				else {
+					calibWindow[(int)Math.abs(p)][1] = 2;
+				}
+				p -= p;				
+				System.out.print("\t" + p + "\t" + calibWindow[(int)Math.abs(p)][1] + "\t"+isNegative);
 			} else {
 				if(!calibrationDone) {
-					System.out.println("---- Calibrating ----");
+					int sign = 1;
 					double max = (-1) * CALIBRATION_WINDOW_SIZE;
-					
 					for(int i = 0; i < CALIBRATION_WINDOW_SIZE; i++ ) {
-						if(calibWindow[i] > max) {
+						if(calibWindow[i][0] > max) {
 							max = i;
+							if(calibWindow[i][1] == 1) {
+								sign = -1;
+							}
+							else {
+								sign = 1;
+							}
+							
 						}
 					}
 					calibrationDone = true;
-					calibratedVal = max;
+					calibratedVal = max * sign;
 					p -= calibratedVal;
 					System.out.println("---- Calibration DONE ---- " + max);
 				}
 				else {
-					p -= calibratedVal;
+					p += calibratedVal;
+					System.out.print("--> " + p);
 				}
 			}
 
-			System.out.print("\n p --> " + p);
+			
 
 			
 			double dp = (p/60);
