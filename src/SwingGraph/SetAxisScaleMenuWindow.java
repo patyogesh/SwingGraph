@@ -25,10 +25,32 @@ public class SetAxisScaleMenuWindow extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField txtYStart;
+	private  double yStart;
+	
 	private JTextField txtYEnd;
-	private JTextField textXStart;
-	private JTextField textXEnd;
+	private  double yEnd;
+	
+	private JTextField txtXStart;
+	private  double xStart;
+	
+	private JTextField txtXEnd;
+	private  double xEnd;
 
+	public double getYStart() {
+		return yStart;
+	}
+	
+	public double getYEnd() {
+		return yEnd;
+	}
+	
+	public double getXStart() {
+		return xStart;
+	}
+	
+	public double getXEnd() {
+		return xEnd;
+	}
 	/**
 	 * Launch the application.
 	 */
@@ -86,7 +108,13 @@ public class SetAxisScaleMenuWindow extends JFrame {
 		btnNewButton.setBounds(100, 147, 95, 33);
 		panel.add(btnNewButton);
 		btnNewButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {	    	
+			public void actionPerformed(ActionEvent arg0) {
+				yStart = Double.parseDouble(txtYStart.getText());
+				yEnd = Double.parseDouble(txtYEnd.getText());
+				
+				xStart = Double.parseDouble(txtXStart.getText());
+				xEnd = Double.parseDouble(txtXEnd.getText());
+				
 		    	dispose();
 			}
 		});
@@ -102,20 +130,20 @@ public class SetAxisScaleMenuWindow extends JFrame {
 		label.setBounds(214, 47, 73, 23);
 		panel.add(label);
 		
-		textXStart = new JTextField();
-		textXStart.setColumns(10);
-		textXStart.setBounds(290, 48, 67, 20);
-		panel.add(textXStart);
+		txtXStart = new JTextField();
+		txtXStart.setColumns(10);
+		txtXStart.setBounds(290, 48, 67, 20);
+		panel.add(txtXStart);
 		
 		JLabel label_1 = new JLabel("End");
 		label_1.setHorizontalAlignment(SwingConstants.CENTER);
 		label_1.setBounds(214, 78, 73, 23);
 		panel.add(label_1);
 		
-		textXEnd = new JTextField();
-		textXEnd.setColumns(10);
-		textXEnd.setBounds(290, 79, 67, 20);
-		panel.add(textXEnd);
+		txtXEnd = new JTextField();
+		txtXEnd.setColumns(10);
+		txtXEnd.setBounds(290, 79, 67, 20);
+		panel.add(txtXEnd);
 		
 		JLabel lblYAxis = new JLabel("Y Axis");
 		lblYAxis.setFont(new Font("Tahoma", Font.BOLD, 14));

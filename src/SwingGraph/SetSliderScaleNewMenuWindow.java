@@ -24,9 +24,31 @@ public class SetSliderScaleNewMenuWindow extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField textThresholdStart;
+	double  thresholdStart;
+	
 	private JTextField textThresholdEnd;
+	double  thresholdEnd;
+	
 	private JTextField textThresholdScale;
+	double  thresholdScale;
 
+	public SetSliderScaleNewMenuWindow(double start, double end, double scale) {
+		thresholdStart = start;
+		thresholdEnd = end;
+		thresholdScale = scale;
+	}
+	
+	public double getThresholdStart() {
+		return thresholdStart;
+	}
+	
+	public double getThresholdEnd() {
+		return thresholdEnd;
+	}
+	
+	public double getThresholdScale() {
+		return thresholdScale;
+	}
 	/**
 	 * Launch the application.
 	 */
@@ -48,7 +70,7 @@ public class SetSliderScaleNewMenuWindow extends JFrame {
 	 */
 	public SetSliderScaleNewMenuWindow() {
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setBounds(100, 100, 366, 247);
+		setBounds(100, 100, 394, 248);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -61,7 +83,7 @@ public class SetSliderScaleNewMenuWindow extends JFrame {
 		JLabel lblBreathingThresholdLimits = new JLabel("Breathing Threshold Limits");
 		lblBreathingThresholdLimits.setHorizontalAlignment(SwingConstants.CENTER);
 		lblBreathingThresholdLimits.setFont(new Font("Tahoma", Font.BOLD, 14));
-		lblBreathingThresholdLimits.setBounds(70, 0, 184, 23);
+		lblBreathingThresholdLimits.setBounds(70, 0, 221, 23);
 		panel.add(lblBreathingThresholdLimits);
 		
 		JLabel label_1 = new JLabel("Start");

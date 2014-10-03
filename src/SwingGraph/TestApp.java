@@ -129,6 +129,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	static TestApp testAppFrame;
 	JPanel timerDispPanel;
 	
+	SetAxisScaleMenuWindow axisScaleWin;
+	SetSliderScaleNewMenuWindow sliderScaleWin;
+	
 	static SpaceAction spaceAction;
 	String selectedPort;
 	static boolean serialPortFound = false;
@@ -158,7 +161,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	boolean bTimeOver = false;
 	JLabel lblTimeRemaining;
 	
-	static Double DEFAULT_THRESHOLD = 1.5;
+	static Double DEFAULT_THRESHOLD = 1.0;
 	static Double minThresholdMarker = DEFAULT_THRESHOLD;
 	static Double maxThresholdMarker = minThresholdMarker + 0.5;
 	
@@ -711,7 +714,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		JMenuItem mntmSetAxis = new JMenuItem("Set Axis Scale");
 		mntmSetAxis.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				SetAxisScaleMenuWindow axisScaleWin = new SetAxisScaleMenuWindow();
 				axisScaleWin.setVisible(true);
 			}
 		});
@@ -720,7 +722,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Set Slider Scale");
 		mntmNewMenuItem_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				SetSliderScaleNewMenuWindow sliderScaleWin = new SetSliderScaleNewMenuWindow();
 				sliderScaleWin.setVisible(true);
 			}
 		});
@@ -747,6 +748,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(lblSetMax);
 		lblSetMax.setHorizontalAlignment(SwingConstants.CENTER);
 		lblSetMax.setFont(new Font("Tahoma", Font.BOLD, 11));
+		
+		sliderScaleWin = new SetSliderScaleNewMenuWindow(0.0, 3.5, 0.5);
+		axisScaleWin = new SetAxisScaleMenuWindow();
 				
 		ChartPanel chartPanel = drawChart();
 		contentPane.add(chartPanel);
@@ -764,7 +768,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
                 										   1.0f, new float[] {10.0f, 6.0f}, 0.0f));
         markerThresholdWindowTop.setValue(maxThresholdMarker);
         xyPlot.addRangeMarker(markerThresholdWindowTop);
-        
      
 		final ValueMarker markerThreshold = new ValueMarker(DEFAULT_THRESHOLD);  // position is the value on the axis
 		/* Draw Threshold Line */ 
@@ -788,15 +791,25 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(sliderMINThreshold);
 		
 		thresholdTable = new java.util.Hashtable<Integer, JLabel>();
-		thresholdTable.put(new Integer(7), new JLabel("3.5"));
-		thresholdTable.put(new Integer(6), new JLabel("3.0"));
-		thresholdTable.put(new Integer(5), new JLabel("2.5"));
-		thresholdTable.put(new Integer(4), new JLabel("2.0"));
-		thresholdTable.put(new Integer(3), new JLabel("1.5"));
-		thresholdTable.put(new Integer(2), new JLabel("1.0"));
-		thresholdTable.put(new Integer(1), new JLabel("0.5"));
-		thresholdTable.put(new Integer(0), new JLabel("0"));
-		
+
+		double scaleUnit = sliderScaleWin.getThresholdEnd();
+		thresholdTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+			
 		sliderMINThreshold.setLabelTable(thresholdTable);
 		sliderMINThreshold.setEnabled(false);
 		
@@ -814,6 +827,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		/* 
 		 * Upper (Dotted) threshold adjustment
 		 */
+		//final JSlider sliderUpperThreshold = new JSlider(0, 7, 3);
 		final JSlider sliderUpperThreshold = new JSlider(0, 7, 3);
 		sliderUpperThreshold.setToolTipText("Dash Line");
 		sliderUpperThreshold.setSnapToTicks(true);
@@ -826,14 +840,24 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(sliderUpperThreshold);
 		
 		thresholdUpperTable = new java.util.Hashtable<Integer, JLabel>();
-		thresholdUpperTable.put(new Integer(7), new JLabel("3.5"));
-		thresholdUpperTable.put(new Integer(6), new JLabel("3.0"));
-		thresholdUpperTable.put(new Integer(5), new JLabel("2.5"));
-		thresholdUpperTable.put(new Integer(4), new JLabel("2.0"));
-		thresholdUpperTable.put(new Integer(3), new JLabel("1.5"));
-		thresholdUpperTable.put(new Integer(2), new JLabel("1.0"));
-		thresholdUpperTable.put(new Integer(1), new JLabel("0.5"));
-		thresholdUpperTable.put(new Integer(0), new JLabel("0"));
+
+		scaleUnit = sliderScaleWin.getThresholdEnd();
+		thresholdUpperTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
+		thresholdUpperTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit -= sliderScaleWin.getThresholdScale();
 		
 		sliderUpperThreshold.setLabelTable(thresholdUpperTable);
 		sliderUpperThreshold.setEnabled(false);
