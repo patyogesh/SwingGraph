@@ -8,6 +8,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.GradientPaint;
+import java.awt.Stroke;
 
 import javafx.stage.FileChooser;
 
@@ -50,6 +51,7 @@ import org.jfree.data.time.Second;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.util.ShapeUtilities;
 
 import com.sun.corba.se.impl.presentation.rmi.DynamicStubImpl;
 import com.sun.corba.se.spi.orbutil.fsm.Action;
@@ -83,13 +85,17 @@ import javax.swing.JProgressBar;
 import java.awt.Font;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.PortUnreachableException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.TooManyListenersException;
@@ -132,13 +138,22 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	private JLabel TimeElapsed;
 	public  Timer  timerCountDown;
 	public  Timer  timerToClearOff;
+	public  Timer  timerToCalibrate;
+	
 	boolean clearOffTimerRunning = false;
+	boolean calibrationTimerRunning = false;
 	
 	ActionListener countDownTimeListener;
 	ActionListener clearOffTimerListener;
+	ActionListener	calibrationTimerListener;
 	long countDown = 0;
 	public long countElapsed = 0;
 	long clearOffCountDown = 0;
+	long calibbrationCountDown = 0;
+	final static int CALIBRATION_WINDOW_SIZE = 256;
+	double calibratedVal = 0;
+	double[] calibWindow = new double[CALIBRATION_WINDOW_SIZE];
+	boolean  calibrationDone = false;
 
 	boolean bTimeOver = false;
 	JLabel lblTimeRemaining;
@@ -177,6 +192,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	double cum_volume = 0;
 	final static int SAMPLE_CUMULATION_TIMEOUT = 50;
 	
+	static FileOutputStream sampleLogFileName;
+	static PrintStream outSampleLogFileName;
+	
 	/*
 	 * Following fields are all related to Serial communication
 	 */
@@ -204,6 +222,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	final static int PORT_CONNECT_TIMEOUT = 2000;
 	final static int TREATMENT_DURATION = 5;
 	final static int SCREENFUL_DURATION = 30;
+	final static int CALIBRATION_DURATION = 10;
 	private boolean countDownTimerRunning = false;
 
 	//some ascii values for for certain things
@@ -220,7 +239,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	public JLabel lblPrintPatName;
 	public JLabel lblPrintPatID;
 	public JLabel lblPrintTestID;
-	public JLabel label_2;
+	public JLabel lblPrintOngoingSess;
 	
 	/*
 	 * Menu data structures
@@ -252,10 +271,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	}
 	/**
 	 * Launch the application.
+	 * @throws FileNotFoundException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		set_native_look_and_feel();
-					
+		sampleLogFileName = new FileOutputStream("C:/ABC Files/"+"testNumber_"+"_log"+".txt");
+		try {
+		outSampleLogFileName = new PrintStream(sampleLogFileName);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {				
@@ -350,9 +377,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		dataset.appendData(newData);
 	}
 */	
-	
+	/* 
+	 * Following function is called from Serial Port receive event handler that supplies
+	 * X,Y values
+	 */
 	public void addPoint(Number x, Number y) {
     	XYItemRenderer renderer = xyPlot.getRenderer();
+
+    	Stroke stroke = new BasicStroke(
+    			0.05f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    	renderer.setBaseOutlineStroke(stroke);
+
+    	
     	//System.out.println("addPoint y = " + y.doubleValue() + "  minThresholdMarker" + minThresholdMarker);
 		if(y.doubleValue() > minThresholdMarker) {
 			GradientPaint gPaint = new GradientPaint(2.0f, 6.0f, Color.lightGray, 2.0f, 6.0f, Color.green);
@@ -458,7 +494,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
         xySeriesCollection.addSeries(xySeries);
         
-        JFreeChart chart = ChartFactory.createScatterPlot("Breathing Co-ordinator", "Time (ms)", "Volume (liters)", xySeriesCollection);
+        JFreeChart chart = ChartFactory.createScatterPlot("Breathing Co-ordinator", "", "Volume (liters)", xySeriesCollection);
 
         // Get the XY Plot from the scatter chart
         xyPlot = (XYPlot) chart.getPlot();
@@ -474,6 +510,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         // Create the renderer
         XYItemRenderer renderer = xyPlot.getRenderer();
         renderer.setSeriesPaint(1, Color.blue);
+        
+        
 
         NumberAxis domain = (NumberAxis) xyPlot.getDomainAxis();
         domain.setVerticalTickLabels(false);
@@ -497,7 +535,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
                         	        
         xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
         xyPlot.setDomainAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-//        xyPlot.addRangeMarker(marker);
+
         
         return chartPanel_1;
         
@@ -566,6 +604,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			    	lblPrintPatName.setText(impl.getPatName());
 			    	lblPrintPatID.setText(impl.getPatID());
 			    	lblPrintTestID.setText(Integer.toString(impl.getTestID()));
+			    	lblPrintOngoingSess.setText(Integer.toString(impl.getBreathHoldTime()));
 //					System.out.println("Opened " + fileOpened.getName());
 				}
 			}
@@ -664,10 +703,28 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		mnEdit.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		menuBar.add(mnEdit);
 		
-		JMenu mnAbout = new JMenu("About");
+		JMenu mnAbout = new JMenu("Setup");
 		mnAbout.setMnemonic('A');
 		mnAbout.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		menuBar.add(mnAbout);
+		
+		JMenuItem mntmSetAxis = new JMenuItem("Set Axis Scale");
+		mntmSetAxis.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				SetAxisScaleMenuWindow axisScaleWin = new SetAxisScaleMenuWindow();
+				axisScaleWin.setVisible(true);
+			}
+		});
+		mnAbout.add(mntmSetAxis);
+		
+		JMenuItem mntmNewMenuItem_1 = new JMenuItem("Set Slider Scale");
+		mntmNewMenuItem_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				SetSliderScaleNewMenuWindow sliderScaleWin = new SetSliderScaleNewMenuWindow();
+				sliderScaleWin.setVisible(true);
+			}
+		});
+		mnAbout.add(mntmNewMenuItem_1);
 		
 		JMenu mnHelp = new JMenu("Help");
 		mnHelp.setMnemonic('H');
@@ -841,10 +898,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		lblPrintTestID.setBounds(100, 71, 146, 14);
 		panel.add(lblPrintTestID);
 		
-		label_2 = new JLabel("_________________");
-		label_2.setFont(new Font("Tahoma", Font.BOLD, 11));
-		label_2.setBounds(100, 96, 146, 14);
-		panel.add(label_2);
+		lblPrintOngoingSess = new JLabel("_________________");
+		lblPrintOngoingSess.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblPrintOngoingSess.setBounds(100, 96, 146, 14);
+		panel.add(lblPrintOngoingSess);
 		
 		JPanel panel_1 = new JPanel();
 
@@ -939,9 +996,24 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				if(clearOffCountDown == 0) {
 					stopClearOffTimer();
 				} else {
-					System.out.println("One Down " + clearOffCountDown);
 					clearOffCountDown --;
 				}
+			}
+		};
+		
+		calibrationTimerListener = new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				if(calibbrationCountDown == 0) {
+					timerToCalibrate.stop();
+					calibrationTimerRunning = false;
+				} else {
+					System.out.print("\n Down to " + calibbrationCountDown);
+					calibbrationCountDown --;
+				}
+				
 			}
 		};
 		
@@ -958,6 +1030,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //				timerCountDown.start();
 //				timerDispPanel.setBackground(new Color(240, 230, 140));
 				XYItemRenderer renderer = xyPlot.getRenderer();
+				
 				renderer.setSeriesPaint(0, Color.blue);
 
 				if(patientReady == false) {
@@ -1119,9 +1192,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
 			sample_time_start = System.nanoTime();
 			curr_state = CurrentState.INIT;
+			calibbrationCountDown = CALIBRATION_DURATION;
 			
 			System.out.println("initIOStream returned" + testAppFrame.initIOStream());
 			System.out.println("Initing Listeners");
+						
 			testAppFrame.initListener();
 			System.out.println("Work Done, Deinit");
 			return 0;
@@ -1214,6 +1289,13 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			if(clearOffTimerRunning) {
 				stopClearOffTimer();
 			}
+			
+			if(clearOffTimerRunning) {
+				timerToCalibrate.stop();
+			}
+			
+			sampleLogFileName.close();
+			outSampleLogFileName.close();
 			logText = "Disconnected.";
 		}
 		catch (Exception e)
@@ -1249,8 +1331,18 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 
 				parseRecvdMsg(recvdMsg);
 				
+				if(calibbrationCountDown > 0 && calibrationTimerRunning == false) {
+					//System.out.print("\nRead ->>>" + recvdMsg + " And Calibration STARTED");
+					timerToCalibrate = new Timer(1000, calibrationTimerListener);
+					timerToCalibrate.setInitialDelay(0);				
+					calibbrationCountDown = CALIBRATION_DURATION;
+					timerToCalibrate.start();
+					calibrationTimerRunning = true;
+					
+				}
+				
 				if(clearOffTimerRunning == false) {
-					System.out.print("\nRead ->>>" + recvdMsg + " And Timer STARTED");
+					//System.out.print("\nRead ->>>" + recvdMsg + " And Timer STARTED");
 					timerToClearOff = new Timer(1000, clearOffTimerListener);
 					timerToClearOff.setInitialDelay(0);				
 					clearOffCountDown = SCREENFUL_DURATION;
@@ -1275,7 +1367,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		StringBuffer s1_number = new StringBuffer();
 		char c;
 		boolean isNegative = false;
-
+		/*
+		 * Handle pressure sample
+		 */
 		if(s1.contains("P")) {
 			if(s1.contains("P-")) {
 				//System.out.print("Negative Number received");
@@ -1301,15 +1395,39 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			double p = Double.parseDouble(s1_number.toString());
 
 			if(isNegative == true) {
-//				p = 0.00 - p;
 				p = (-1) * p;
 			}
-			//System.out.print("\n" + p);
+			
+			if(calibbrationCountDown > 0) {
+				calibWindow[(int)Math.abs(p)] ++;
+				p -= Math.abs(p);				
+			} else {
+				if(!calibrationDone) {
+					System.out.println("---- Calibrating ----");
+					double max = (-1) * CALIBRATION_WINDOW_SIZE;
+					
+					for(int i = 0; i < CALIBRATION_WINDOW_SIZE; i++ ) {
+						if(calibWindow[i] > max) {
+							max = i;
+						}
+					}
+					calibrationDone = true;
+					calibratedVal = max;
+					p -= calibratedVal;
+					System.out.println("---- Calibration DONE ---- " + max);
+				}
+				else {
+					p -= calibratedVal;
+				}
+			}
+
+			System.out.print("\n p --> " + p);
 
 			
 			double dp = (p/60);
 			double volume = dp/(60*55.57);
 			
+			System.out.print("\t" + volume);
 			cum_volume += volume;
 
 			sample_time_end = System.nanoTime();
@@ -1330,7 +1448,15 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 								
 				testAppFrame.addPoint(xVal += 0.2, cum_volume);
 				
-				// Commeing followin if..else block to allow -ve value plot
+				/* 
+				 * Log the current Date, timestamp and beathing data
+				 */
+				String timeStamp = new SimpleDateFormat("MM/dd/yyyy [HH:mm:ss]\t").format(Calendar.getInstance().getTime());
+				outSampleLogFileName.append(timeStamp).
+									 append(String.valueOf(cum_volume)).
+									 append("\n");
+				
+				// Commenting following if..else block to allow -ve value plot
 //				if(cum_volume > 0)
 //					testAppFrame.addPoint(xVal += 0.2, cum_volume);		
 //				else
@@ -1349,11 +1475,20 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				(prev_state == CurrentState.EXHALE && curr_state == CurrentState.INHALE)))
 			{
 				cum_volume -= volume;
-//				cum_volume = 0;
+				//cum_volume = 0;
 				sample_time_elapsed_counter += SAMPLE_CUMULATION_TIMEOUT;
 				
 				testAppFrame.addPoint(xVal += 0.2, cum_volume);
-				// Commeing followin if..else block to allow -ve value plot
+				
+				/* 
+				 * Log the current Date, timestamp and beathing data
+				 */
+				String timeStamp = new SimpleDateFormat("MM/dd/yyyy [HH:mm:ss]\t").format(Calendar.getInstance().getTime());
+				outSampleLogFileName.append(timeStamp).
+									 append(String.valueOf(cum_volume)).
+									 append("\n");
+
+				// Commenting following if..else block to allow -ve value plot
 //				if(cum_volume > 0)
 //					testAppFrame.addPoint(xVal += 0.2, cum_volume);
 //				else
@@ -1365,6 +1500,12 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				//TODO: This value of cum_volume should be sent to plot and then reset with new volume
 				//cum_volume = volume;
 			}
+		}
+		/*
+		 * Handle battery status indicator sample
+		 */
+		else if (s1.contains("b")) {
+			//TODO:  Update battery status at front end
 		}
 	}
 
@@ -1392,7 +1533,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			logText = "Failed to write data. (" + e.toString() + ")";
 		}
 	}
-
 }
 
 

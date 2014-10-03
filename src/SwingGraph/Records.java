@@ -6,6 +6,8 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -42,7 +44,7 @@ class SerializablePatient implements Serializable {
     }
 }
 
-class ObjectSerializationDemo /*extends TestApp */{
+class ObjectSerializationDemo extends TestApp{
     String 	name;
     String 	ID;
     int 	breathHoldTime;
@@ -85,12 +87,19 @@ class ObjectSerializationDemo /*extends TestApp */{
         	
             FileOutputStream fileName = new FileOutputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+".txt");       
             
+            //sampleLogFileName = new FileOutputStream("C:/ABC Files/"+name+"/"+"testNumber_"+testNumber+"_log"+".txt");
+            
             try {
-            	PrintStream out = new PrintStream(fileName);
+            	PrintStream out = new PrintStream(fileName);	
+            	//outSampleLogFileName = new PrintStream(sampleLogFileName);
+            	
             	out.append(name).append("\t").
             		append(patientID).append("\t").
             		append(String.valueOf(breathHoldTime)).append("\t").
             		append(String.valueOf(testNumber));
+            	
+            	out.close();
+            	fileName.close();
             } catch (Exception e) {
             	e.printStackTrace();
             }
@@ -99,6 +108,8 @@ class ObjectSerializationDemo /*extends TestApp */{
         	e.printStackTrace();
         }
     }
+    
+   
     
     void readData(String name, int testNumber) {
     	try {
