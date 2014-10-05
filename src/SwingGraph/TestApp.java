@@ -129,6 +129,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	
 	static TestApp testAppFrame;
 	JPanel timerDispPanel;
+	JSlider sliderMINThreshold;
+	JSlider sliderUpperThreshold;
+	ValueMarker markerThresholdWindowTop;
+	ValueMarker markerThreshold;
 	
 	SetAxisScaleMenuWindow axisScaleWin;
 	SetSliderScaleNewMenuWindow sliderScaleWin;
@@ -763,7 +767,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //		contentPane.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "doEnterAction");
 //		contentPane.getActionMap().put("doEnterAction", spaceAction);
 			
-		final ValueMarker markerThresholdWindowTop = new ValueMarker(maxThresholdMarker);  // position is the value on the axis
+		markerThresholdWindowTop = new ValueMarker(maxThresholdMarker);  // position is the value on the axis
 		/* Draw Threshold Line */ 
         markerThresholdWindowTop.setPaint(Color.black);
         markerThresholdWindowTop.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 
@@ -771,14 +775,14 @@ public class TestApp extends JFrame implements SerialPortEventListener {
         markerThresholdWindowTop.setValue(maxThresholdMarker);
         xyPlot.addRangeMarker(markerThresholdWindowTop);
      
-		final ValueMarker markerThreshold = new ValueMarker(DEFAULT_THRESHOLD);  // position is the value on the axis
+		markerThreshold = new ValueMarker(DEFAULT_THRESHOLD);  // position is the value on the axis
 		/* Draw Threshold Line */ 
         markerThreshold.setPaint(Color.black);
         markerThreshold.setStroke(new BasicStroke(2));
         markerThreshold.setValue(DEFAULT_THRESHOLD);
         xyPlot.addRangeMarker(markerThreshold);
 		
-		final JSlider sliderMINThreshold = new JSlider(0, 7, 1);
+		sliderMINThreshold = new JSlider(0, 7, 1);
 		sliderMINThreshold.setToolTipText("Solid Line");
 		
 		sliderMINThreshold.setSnapToTicks(true);
@@ -794,7 +798,31 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		
 		thresholdTable = new java.util.Hashtable<Integer, JLabel>();
 
-		drawSlider(sliderScaleWin, thresholdTable);
+		double scaleUnit = sliderScaleWin.getThresholdStart();
+		double scaleInterval = sliderScaleWin.getThresholdScale();
+		
+		thresholdTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
 			
 		sliderMINThreshold.setLabelTable(thresholdTable);
 		sliderMINThreshold.setEnabled(false);
@@ -813,8 +841,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		/* 
 		 * Upper (Dotted) threshold adjustment
 		 */
-		//final JSlider sliderUpperThreshold = new JSlider(0, 7, 3);
-		final JSlider sliderUpperThreshold = new JSlider(0, 7, 3);
+		sliderUpperThreshold = new JSlider(0, 7, 3);
 		sliderUpperThreshold.setToolTipText("Dash Line");
 		sliderUpperThreshold.setSnapToTicks(true);
 		sliderUpperThreshold.setPaintTicks(true);
@@ -826,8 +853,32 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(sliderUpperThreshold);
 		
 		thresholdUpperTable = new java.util.Hashtable<Integer, JLabel>();
-
-		drawSlider(sliderScaleWin, thresholdUpperTable);
+		
+		scaleUnit = sliderScaleWin.getThresholdStart();
+		scaleInterval = sliderScaleWin.getThresholdScale();
+		
+		thresholdUpperTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
+		scaleUnit += scaleInterval;
+		
+		thresholdUpperTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
 		
 		sliderUpperThreshold.setLabelTable(thresholdUpperTable);
 		sliderUpperThreshold.setEnabled(false);
@@ -1084,29 +1135,177 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		contentPane.add(panel_5);
 }
 	
-	public void drawSlider(SetSliderScaleNewMenuWindow sliderWin,
-			java.util.Hashtable<Integer, JLabel> thresholdTable) 
-	{
-		double scaleUnit = sliderScaleWin.getThresholdEnd();
-		System.out.println("thresh " + scaleUnit);
-		thresholdTable.put(new Integer(7), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(6), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(5), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(4), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(3), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(2), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(1), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-		thresholdTable.put(new Integer(0), new JLabel(Double.toString(scaleUnit)));
-		scaleUnit -= sliderScaleWin.getThresholdScale();
-
+	public void drawSliderMin(double start, double scale) 
+	{		
+		double scaleInterval = scale;
+		
+		if(!thresholdTable.isEmpty()) {
+	
+			System.out.println("--------RE DRAWING Min--------");
+			double scaleUnit = start;
+			thresholdTable.clear();
+			contentPane.remove(sliderMINThreshold);
+			
+			sliderMINThreshold = new JSlider(0, 7, 1);
+			sliderMINThreshold.setToolTipText("Solid Line");
+			sliderMINThreshold.setSnapToTicks(true);
+			sliderMINThreshold.setPaintTicks(true);
+			sliderMINThreshold.setMajorTickSpacing(1);
+//			slider.setMinorTickSpacing(1);
+			sliderMINThreshold.setValue(3);
+			sliderMINThreshold.setPaintLabels(true);
+			sliderMINThreshold.setMaximum(7);
+			sliderMINThreshold.setOrientation(SwingConstants.VERTICAL);
+			sliderMINThreshold.setBounds(1245, 222, 59, 123);
+			contentPane.add(sliderMINThreshold);
+			
+			thresholdTable = new java.util.Hashtable<Integer, JLabel>();
+			
+			thresholdTable.put(0, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(1, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(2, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(3, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(4, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(5, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(6, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdTable.put(7, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+		
+			sliderMINThreshold.setLabelTable(thresholdTable);
+			sliderMINThreshold.setEnabled(false);
+			sliderMINThreshold.setVisible(true);
+			
+			sliderMINThreshold.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent arg0) {
+					JLabel sliderMoveVal = thresholdTable.get(sliderMINThreshold.getValue());
+					minThresholdMarker = Double.parseDouble(sliderMoveVal.getText());
+					
+					System.out.println("Threshold Changed to " + minThresholdMarker);
+					
+					markerThreshold.setValue(minThresholdMarker);
+				}
+			});
+			System.out.println("--------RE DRAWING Min DONE--------");
+		}
+		
+		if(!thresholdUpperTable.isEmpty()) {
+			
+			System.out.println("--------RE DRAWING Max--------");
+			double scaleUnit = start;
+			thresholdUpperTable.clear();
+			contentPane.remove(sliderUpperThreshold);
+			
+			sliderUpperThreshold = new JSlider(0, 7, 3);
+			sliderUpperThreshold.setToolTipText("Dash Line");
+			sliderUpperThreshold.setSnapToTicks(true);
+			sliderUpperThreshold.setPaintTicks(true);
+			sliderUpperThreshold.setPaintLabels(true);
+			sliderUpperThreshold.setOrientation(SwingConstants.VERTICAL);
+			sliderUpperThreshold.setMajorTickSpacing(1);
+			sliderUpperThreshold.setEnabled(false);
+			sliderUpperThreshold.setBounds(1245, 382, 59, 123);
+			contentPane.add(sliderUpperThreshold);
+			
+			thresholdUpperTable = new java.util.Hashtable<Integer, JLabel>();
+			
+			thresholdUpperTable.put(0, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(1, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(2, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(3, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(4, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(5, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(6, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(7, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+		
+			sliderUpperThreshold.setLabelTable(thresholdUpperTable);
+			sliderUpperThreshold.setEnabled(false);
+			sliderUpperThreshold.setVisible(true);
+			
+			sliderUpperThreshold.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent arg0) {
+					JLabel sliderMoveVal = thresholdUpperTable.get(sliderUpperThreshold.getValue());
+					maxThresholdMarker = Double.parseDouble(sliderMoveVal.getText());
+					
+					System.out.println("Threshold Changed to " + maxThresholdMarker);
+								
+					markerThresholdWindowTop.setValue(maxThresholdMarker);
+				}
+			});              
+			System.out.println("--------RE DRAWING Max DONE--------");
+		}
 	}
+	
+	public void drawSliderMax(double start, double scale) 
+	{		
+		double scaleInterval = scale;
+		
+		if(!thresholdUpperTable.isEmpty()) {
+			
+			System.out.println("--------RE DRAWING Max--------");
+			double scaleUnit = start;
+			thresholdUpperTable.clear();
+			contentPane.remove(sliderUpperThreshold);
+			
+			sliderUpperThreshold = new JSlider(0, 7, 3);
+			sliderUpperThreshold.setToolTipText("Dash Line");
+			sliderUpperThreshold.setSnapToTicks(true);
+			sliderUpperThreshold.setPaintTicks(true);
+			sliderUpperThreshold.setPaintLabels(true);
+			sliderUpperThreshold.setOrientation(SwingConstants.VERTICAL);
+			sliderUpperThreshold.setMajorTickSpacing(1);
+			sliderUpperThreshold.setEnabled(false);
+			sliderUpperThreshold.setBounds(1245, 382, 59, 123);
+			contentPane.add(sliderUpperThreshold);
+			
+			thresholdUpperTable = new java.util.Hashtable<Integer, JLabel>();
+			
+			thresholdUpperTable.put(0, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(1, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(2, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(3, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(4, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(5, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(6, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+			scaleUnit += scaleInterval;
+			thresholdUpperTable.put(7, new JLabel(String.copyValueOf(Double.toString(scaleUnit).toCharArray(), 0, 3)));
+		
+			sliderUpperThreshold.setLabelTable(thresholdUpperTable);
+			sliderUpperThreshold.setEnabled(false);
+			
+			sliderUpperThreshold.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent arg0) {
+					JLabel sliderMoveVal = thresholdUpperTable.get(sliderUpperThreshold.getValue());
+					maxThresholdMarker = Double.parseDouble(sliderMoveVal.getText());
+					
+					System.out.println("Threshold Changed to " + maxThresholdMarker);
+								
+					markerThresholdWindowTop.setValue(maxThresholdMarker);
+				}
+			});              
+			System.out.println("--------RE DRAWING Max DONE--------");
+		}
+	}
+	
+	
 	
 	public boolean searchForPorts()
 	{
@@ -1425,8 +1624,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				else {
 					calibWindow[(int)Math.abs(p)][1] = 2;
 				}
+				System.out.print(/*"\t" + p +*/ "\t" + calibWindow[(int)Math.abs(p)][1]  + "\t"+isNegative);
 				p -= p;				
-				System.out.print("\t" + p + "\t" + calibWindow[(int)Math.abs(p)][1] + "\t"+isNegative);
+				
 			} else {
 				if(!calibrationDone) {
 					int sign = 1;
@@ -1434,19 +1634,22 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					for(int i = 0; i < CALIBRATION_WINDOW_SIZE; i++ ) {
 						if(calibWindow[i][0] > max) {
 							max = i;
-							if(calibWindow[i][1] == 1) {
-								sign = -1;
-							}
-							else {
-								sign = 1;
-							}
-							
+							sign = calibWindow[i][1];							
 						}
 					}
 					calibrationDone = true;
-					calibratedVal = max * sign;
-					p -= calibratedVal;
+					if(sign == 1) {
+						calibratedVal = max * (-1);
+						System.out.print("SIGN     " + sign + "  MAX  " + max + "   Calibrated Val  " + calibratedVal);
+					}
+					else if(sign == 2){
+						calibratedVal = max * 1;
+						System.out.print("SIGN     " + sign + "  MAX  " + max + "   Calibrated Val  " + calibratedVal);
+					}
+					
 					System.out.println("---- Calibration DONE ---- " + max);
+					p -= calibratedVal;
+					
 				}
 				else {
 					p += calibratedVal;
@@ -1566,6 +1769,153 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			logText = "Failed to write data. (" + e.toString() + ")";
 		}
 	}
+	
+	public class SetSliderScaleNewMenuWindow extends JFrame{
+
+		private JPanel contentPane;
+		private JTextField textThresholdStart;
+		double  thresholdStart;
+		
+		private JTextField textThresholdEnd;
+		double  thresholdEnd;
+		
+		private JTextField textThresholdScale;
+		double  thresholdScale;
+
+		boolean sliderUpdateRequired;
+		
+		public void setDefaultParams(double start, double end, double scale) {
+			thresholdStart = start;
+			thresholdEnd = end;
+			thresholdScale = scale;
+			sliderUpdateRequired = false;
+		}
+		
+		public void setThresholdStart(double start) {
+			thresholdStart = start;
+		}
+		
+		public double getThresholdStart() {
+			return thresholdStart;
+		}
+		
+		public void setThresholdEnd(double end) {
+			thresholdEnd = end;
+		}
+		
+		public double getThresholdEnd() {
+			return thresholdEnd;
+		}
+		
+		public void setThresholdScale(double scale) {
+			thresholdScale = scale;
+		}
+		
+		public double getThresholdScale() {
+			return thresholdScale;
+		}
+		
+		public void setSliderUpdateRequired() {
+			sliderUpdateRequired = true;
+		}
+		
+		public boolean getSliderUpdateRequired() {
+			return sliderUpdateRequired;
+		}
+		/**
+		 * Launch the application.
+		 */
+//		public static void main(String[] args) {
+//			EventQueue.invokeLater(new Runnable() {
+//				public void run() {
+//					try {
+//						NewMenuWindow frame = new NewMenuWindow();
+//						frame.setVisible(true);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			});
+//		}
+
+		/**
+		 * Create the frame.
+		 */
+		public SetSliderScaleNewMenuWindow() {
+			setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+			setBounds(100, 100, 394, 248);
+			contentPane = new JPanel();
+			contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+			contentPane.setLayout(new BorderLayout(0, 0));
+			setContentPane(contentPane);
+			
+			JPanel panel = new JPanel();
+			contentPane.add(panel, BorderLayout.CENTER);
+			panel.setLayout(null);
+			
+			JLabel lblBreathingThresholdLimits = new JLabel("Breathing Threshold Limits");
+			lblBreathingThresholdLimits.setHorizontalAlignment(SwingConstants.CENTER);
+			lblBreathingThresholdLimits.setFont(new Font("Tahoma", Font.BOLD, 14));
+			lblBreathingThresholdLimits.setBounds(70, 0, 221, 23);
+			panel.add(lblBreathingThresholdLimits);
+			
+			JLabel label_1 = new JLabel("Start");
+			label_1.setHorizontalAlignment(SwingConstants.CENTER);
+			label_1.setBounds(10, 34, 73, 23);
+			panel.add(label_1);
+			
+			textThresholdStart = new JTextField();
+			textThresholdStart.setColumns(10);
+			textThresholdStart.setBounds(86, 35, 67, 20);
+			panel.add(textThresholdStart);
+			
+			JLabel label_2 = new JLabel("End");
+			label_2.setHorizontalAlignment(SwingConstants.CENTER);
+			label_2.setBounds(10, 65, 73, 23);
+			panel.add(label_2);
+			
+			textThresholdEnd = new JTextField();
+			textThresholdEnd.setColumns(10);
+			textThresholdEnd.setBounds(86, 66, 67, 20);
+			panel.add(textThresholdEnd);
+			
+			JButton button = new JButton("Ok");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					setThresholdStart(Double.parseDouble(textThresholdStart.getText()));
+					setThresholdEnd(Double.parseDouble(textThresholdEnd.getText()));
+					setThresholdScale(Double.parseDouble(textThresholdScale.getText()));
+					
+					drawSliderMin(sliderScaleWin.getThresholdStart(), sliderScaleWin.getThresholdScale());
+					dispose();
+				}
+			});
+			button.setFont(new Font("Tahoma", Font.BOLD, 14));
+			button.setBounds(87, 134, 95, 33);
+			panel.add(button);
+			
+			JButton button_1 = new JButton("Cancel");
+			button_1.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					dispose();
+				}
+			});
+			button_1.setFont(new Font("Tahoma", Font.BOLD, 13));
+			button_1.setBounds(222, 135, 95, 33);
+			panel.add(button_1);
+			
+			textThresholdScale = new JTextField();
+			textThresholdScale.setColumns(10);
+			textThresholdScale.setBounds(86, 100, 67, 20);
+			panel.add(textThresholdScale);
+			
+			JLabel lblScale = new JLabel("Scale");
+			lblScale.setHorizontalAlignment(SwingConstants.CENTER);
+			lblScale.setBounds(10, 99, 73, 23);
+			panel.add(lblScale);
+		}
+	}
+
 }
 
 

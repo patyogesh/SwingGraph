@@ -136,6 +136,9 @@ public class SetSliderScaleNewMenuWindow extends JFrame{
 				setThresholdEnd(Double.parseDouble(textThresholdEnd.getText()));
 				setThresholdScale(Double.parseDouble(textThresholdScale.getText()));
 				
+				//drawSlider(sliderScaleWin, thresholdTable);
+				//drawSlider(sliderScaleWin, thresholdUpperTable);
+				
 				setSliderUpdateRequired();
 				dispose();
 			}
