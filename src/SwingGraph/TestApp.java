@@ -757,7 +757,8 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		sliderScaleWin.setDefaultParams(0.0, 3.5, 0.5);
 		
 		axisScaleWin = new SetAxisScaleMenuWindow();
-				
+		axisScaleWin.setDefaultYParams(-4.0, 3.0);
+		
 		ChartPanel chartPanel = drawChart();
 		contentPane.add(chartPanel);
 		contentPane.add(chartPanel_1);
@@ -1781,6 +1782,9 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		
 		private JTextField textThresholdScale;
 		double  thresholdScale;
+		
+		private JTextField textThresholdVal;
+		double  thresholdVal;
 
 		boolean sliderUpdateRequired;
 		
@@ -1822,6 +1826,14 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		public boolean getSliderUpdateRequired() {
 			return sliderUpdateRequired;
 		}
+		
+		public void setThresholdValue(double val) {
+			thresholdVal = val;
+		}
+		
+		public double getThresholdValue() {
+			return thresholdVal;
+		}
 		/**
 		 * Launch the application.
 		 */
@@ -1839,11 +1851,16 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //		}
 
 		/**
-		 * Create the frame.
+		 * Create the X-Y Axis range config window
+		 */
+
+
+		/**
+		 * Create the Slider Scale config window
 		 */
 		public SetSliderScaleNewMenuWindow() {
 			setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-			setBounds(100, 100, 394, 248);
+			setBounds(100, 100, 398, 279);
 			contentPane = new JPanel();
 			contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 			contentPane.setLayout(new BorderLayout(0, 0));
@@ -1886,12 +1903,16 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 					setThresholdEnd(Double.parseDouble(textThresholdEnd.getText()));
 					setThresholdScale(Double.parseDouble(textThresholdScale.getText()));
 					
+					setThresholdValue(Double.parseDouble(textThresholdVal.getText()));
+					minThresholdMarker = Double.parseDouble(textThresholdVal.getText());
+					markerThreshold.setValue(minThresholdMarker);
+					
 					drawSliderMin(sliderScaleWin.getThresholdStart(), sliderScaleWin.getThresholdScale());
 					dispose();
 				}
 			});
 			button.setFont(new Font("Tahoma", Font.BOLD, 14));
-			button.setBounds(87, 134, 95, 33);
+			button.setBounds(86, 173, 95, 33);
 			panel.add(button);
 			
 			JButton button_1 = new JButton("Cancel");
@@ -1901,7 +1922,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				}
 			});
 			button_1.setFont(new Font("Tahoma", Font.BOLD, 13));
-			button_1.setBounds(222, 135, 95, 33);
+			button_1.setBounds(221, 174, 95, 33);
 			panel.add(button_1);
 			
 			textThresholdScale = new JTextField();
@@ -1913,9 +1934,183 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			lblScale.setHorizontalAlignment(SwingConstants.CENTER);
 			lblScale.setBounds(10, 99, 73, 23);
 			panel.add(lblScale);
+			
+			JLabel lblThreshold = new JLabel("Threshold");
+			lblThreshold.setHorizontalAlignment(SwingConstants.CENTER);
+			lblThreshold.setBounds(10, 131, 73, 23);
+			panel.add(lblThreshold);
+			
+			textThresholdVal = new JTextField();
+			textThresholdVal.setColumns(10);
+			textThresholdVal.setBounds(86, 132, 67, 20);
+			panel.add(textThresholdVal);
 		}
 	}
 
+	public class SetAxisScaleMenuWindow extends JFrame {
+
+		private JPanel contentPane;
+		
+		private JTextField txtYStart;
+		private  double yStart;
+		
+		private JTextField txtYEnd;
+		private  double yEnd;
+		
+		private JTextField txtXStart;
+		private  double xStart;
+		
+		private JTextField txtXEnd;
+		private  double xEnd;
+
+		public double getYStart() {
+			return yStart;
+		}
+		public void setYStart(double val) {
+			yStart = val;
+		}
+		
+		public double getYEnd() {
+			return yEnd;
+		}
+		public void setYEnd(double val) {
+			yEnd = val;
+		}
+		
+		public double getXStart() {
+			return xStart;
+		}
+		public void setXStart(double val) {
+			xStart = val;
+		}
+		
+		public double getXEnd() {
+			return xEnd;
+		}
+		public void setXEnd(double val) {
+			xEnd = val;
+		}
+		public void setDefaultYParams(double low, double high)
+		{
+			yStart = low;
+			yEnd = high;
+		}
+
+		/**
+		 * Create the frame.
+		 */
+		public SetAxisScaleMenuWindow() {
+			setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+			setBounds(100, 100, 426, 257);
+			contentPane = new JPanel();
+			contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+			contentPane.setLayout(new BorderLayout(0, 0));
+			setContentPane(contentPane);
+			
+			JPanel panel = new JPanel();
+			contentPane.add(panel, BorderLayout.CENTER);
+			panel.setLayout(null);
+			
+			JLabel lblName = new JLabel("Start");
+			lblName.setHorizontalAlignment(SwingConstants.CENTER);
+			lblName.setBounds(23, 47, 73, 23);
+			panel.add(lblName);
+			
+			JLabel lblPatient = new JLabel("End");
+			lblPatient.setHorizontalAlignment(SwingConstants.CENTER);
+			lblPatient.setBounds(23, 78, 73, 23);
+			panel.add(lblPatient);
+			
+			txtYStart = new JTextField();
+			txtYStart.setBounds(99, 48, 67, 20);
+			panel.add(txtYStart);
+			txtYStart.setColumns(10);
+			
+			txtYEnd = new JTextField();
+			txtYEnd.setColumns(10);
+			txtYEnd.setBounds(99, 79, 67, 20);
+			panel.add(txtYEnd);
+			
+			JButton btnAxisConfigOkButton = new JButton("Ok");
+			btnAxisConfigOkButton.setFont(new Font("Tahoma", Font.BOLD, 14));
+			btnAxisConfigOkButton.setIcon(null);
+			btnAxisConfigOkButton.setBounds(100, 147, 95, 33);
+			panel.add(btnAxisConfigOkButton);
+			btnAxisConfigOkButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					if(!txtYStart.getText().isEmpty())
+						setYStart(Double.parseDouble(txtYStart.getText()));
+					
+					if(!txtYEnd.getText().isEmpty())
+						setYEnd(Double.parseDouble(txtYEnd.getText()));
+					
+					if(!txtXStart.getText().isEmpty())
+						setXStart(Double.parseDouble(txtXStart.getText()));
+					
+					if(!txtXEnd.getText().isEmpty())
+						setXEnd(Double.parseDouble(txtXEnd.getText()));		
+					
+					NumberAxis xAxis = (NumberAxis) xyPlot.getDomainAxis();
+			        NumberAxis yAxis = (NumberAxis) xyPlot.getRangeAxis();
+			        
+//					xAxis.setRange(getXStart(), getXEnd());
+			        yAxis.setRange(getYStart(), getYEnd());
+			        System.out.println("Range Set");
+					
+			    	dispose();
+				}
+			});
+			
+			JButton btnCancel = new JButton("Cancel");
+			btnCancel.setIcon(new ImageIcon("C:\\Users\\yogesh\\workspace\\SwingGraph\\icons\\1409026080_101.png"));
+			btnCancel.setFont(new Font("Tahoma", Font.BOLD, 13));
+			btnCancel.setBounds(235, 148, 95, 33);
+			panel.add(btnCancel);
+			
+			JLabel label = new JLabel("Start");
+			label.setHorizontalAlignment(SwingConstants.CENTER);
+			label.setBounds(214, 47, 73, 23);
+			panel.add(label);
+			
+			txtXStart = new JTextField();
+			txtXStart.setColumns(10);
+			txtXStart.setBounds(290, 48, 67, 20);
+			panel.add(txtXStart);
+			
+			JLabel label_1 = new JLabel("End");
+			label_1.setHorizontalAlignment(SwingConstants.CENTER);
+			label_1.setBounds(214, 78, 73, 23);
+			panel.add(label_1);
+			
+			txtXEnd = new JTextField();
+			txtXEnd.setColumns(10);
+			txtXEnd.setBounds(290, 79, 67, 20);
+			panel.add(txtXEnd);
+			
+			JLabel lblYAxis = new JLabel("Y Axis");
+			lblYAxis.setFont(new Font("Tahoma", Font.BOLD, 14));
+			lblYAxis.setHorizontalAlignment(SwingConstants.CENTER);
+			lblYAxis.setBounds(83, 13, 73, 23);
+			panel.add(lblYAxis);
+			
+			JLabel lblXAxis = new JLabel("X Axis");
+			lblXAxis.setHorizontalAlignment(SwingConstants.CENTER);
+			lblXAxis.setFont(new Font("Tahoma", Font.BOLD, 14));
+			lblXAxis.setBounds(261, 13, 73, 23);
+			panel.add(lblXAxis);
+			
+			JSeparator separator = new JSeparator();
+			separator.setOrientation(SwingConstants.VERTICAL);
+			separator.setBounds(199, 13, 21, 102);
+			panel.add(separator);
+			btnCancel.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+
+					dispose();
+				}
+			});
+		}
+	}
 }
 
 

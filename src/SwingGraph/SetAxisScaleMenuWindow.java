@@ -24,6 +24,7 @@ import javax.swing.JSeparator;
 public class SetAxisScaleMenuWindow extends JFrame {
 
 	private JPanel contentPane;
+	
 	private JTextField txtYStart;
 	private  double yStart;
 	
@@ -39,17 +40,29 @@ public class SetAxisScaleMenuWindow extends JFrame {
 	public double getYStart() {
 		return yStart;
 	}
+	public void setYStart(double val) {
+		yStart = val;
+	}
 	
 	public double getYEnd() {
 		return yEnd;
+	}
+	public void setYEnd(double val) {
+		yEnd = val;
 	}
 	
 	public double getXStart() {
 		return xStart;
 	}
+	public void setXStart(double val) {
+		xStart = val;
+	}
 	
 	public double getXEnd() {
 		return xEnd;
+	}
+	public void setXEnd(double val) {
+		xEnd = val;
 	}
 	/**
 	 * Launch the application.
@@ -109,11 +122,17 @@ public class SetAxisScaleMenuWindow extends JFrame {
 		panel.add(btnNewButton);
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				yStart = Double.parseDouble(txtYStart.getText());
-				yEnd = Double.parseDouble(txtYEnd.getText());
+				if(!txtYStart.getText().isEmpty())
+					yStart = Double.parseDouble(txtYStart.getText());
 				
-				xStart = Double.parseDouble(txtXStart.getText());
-				xEnd = Double.parseDouble(txtXEnd.getText());
+				if(!txtYEnd.getText().isEmpty())
+					yEnd = Double.parseDouble(txtYEnd.getText());
+				
+				if(!txtXStart.getText().isEmpty())
+					xStart = Double.parseDouble(txtXStart.getText());
+				
+				if(!txtXEnd.getText().isEmpty())
+					xEnd = Double.parseDouble(txtXEnd.getText());
 				
 		    	dispose();
 			}

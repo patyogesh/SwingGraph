@@ -33,6 +33,7 @@ public class SetSliderScaleNewMenuWindow extends JFrame{
 	double  thresholdScale;
 
 	boolean sliderUpdateRequired;
+	private JTextField textThresholdVal;
 	
 	public void setDefaultParams(double start, double end, double scale) {
 		thresholdStart = start;
@@ -93,7 +94,7 @@ public class SetSliderScaleNewMenuWindow extends JFrame{
 	 */
 	public SetSliderScaleNewMenuWindow() {
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setBounds(100, 100, 394, 248);
+		setBounds(100, 100, 398, 279);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -144,7 +145,7 @@ public class SetSliderScaleNewMenuWindow extends JFrame{
 			}
 		});
 		button.setFont(new Font("Tahoma", Font.BOLD, 14));
-		button.setBounds(87, 134, 95, 33);
+		button.setBounds(86, 173, 95, 33);
 		panel.add(button);
 		
 		JButton button_1 = new JButton("Cancel");
@@ -154,7 +155,7 @@ public class SetSliderScaleNewMenuWindow extends JFrame{
 			}
 		});
 		button_1.setFont(new Font("Tahoma", Font.BOLD, 13));
-		button_1.setBounds(222, 135, 95, 33);
+		button_1.setBounds(221, 174, 95, 33);
 		panel.add(button_1);
 		
 		textThresholdScale = new JTextField();
@@ -166,5 +167,15 @@ public class SetSliderScaleNewMenuWindow extends JFrame{
 		lblScale.setHorizontalAlignment(SwingConstants.CENTER);
 		lblScale.setBounds(10, 99, 73, 23);
 		panel.add(lblScale);
+		
+		JLabel lblThreshold = new JLabel("Threshold");
+		lblThreshold.setHorizontalAlignment(SwingConstants.CENTER);
+		lblThreshold.setBounds(10, 131, 73, 23);
+		panel.add(lblThreshold);
+		
+		textThresholdVal = new JTextField();
+		textThresholdVal.setColumns(10);
+		textThresholdVal.setBounds(86, 132, 67, 20);
+		panel.add(textThresholdVal);
 	}
 }
