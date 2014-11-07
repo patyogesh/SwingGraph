@@ -158,9 +158,10 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	public long countElapsed = 0;
 	long clearOffCountDown = 0;
 	long calibbrationCountDown = 0;
-	final static int CALIBRATION_WINDOW_SIZE = 256;
+	final static int CALIBRATION_WINDOW_SIZE = 1024;
 	double calibratedVal = 0;
 	int[][] calibWindow = new int[CALIBRATION_WINDOW_SIZE][2];
+	int calibWindowIndex = 0;
 	boolean  calibrationDone = false;
 
 	boolean bTimeOver = false;
@@ -230,7 +231,7 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 	final static int PORT_CONNECT_TIMEOUT = 2000;
 	final static int TREATMENT_DURATION = 5;
 	final static int SCREENFUL_DURATION = 30;
-	final static int CALIBRATION_DURATION = 10;
+	final static int CALIBRATION_DURATION = 4;
 	private boolean countDownTimerRunning = false;
 
 	//some ascii values for for certain things
@@ -1590,7 +1591,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 		 */
 		if(s1.contains("P")) {
 			if(s1.contains("P-")) {
-				//System.out.print("Negative Number received");
 				isNegative = true;
 				prev_state = curr_state;
 				curr_state = CurrentState.INHALE;
@@ -1599,7 +1599,6 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 				isNegative = false;
 				prev_state = curr_state;
 				curr_state = CurrentState.EXHALE;
-				//System.out.print("Positive Number received");
 			}
 			for(int i = 0; i<s1.length(); i++) {
 				c = s1.charAt(i);
@@ -1617,44 +1616,33 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 			}
 			System.out.print("\n p --> " + p);
 			if(calibbrationCountDown > 0) {
-				calibWindow[(int)Math.abs(p)][0] ++;
-				
-				if(isNegative) {
-					calibWindow[(int)Math.abs(p)][1] = 1;
-				} 
-				else {
-					calibWindow[(int)Math.abs(p)][1] = 2;
-				}
-				System.out.print(/*"\t" + p +*/ "\t" + calibWindow[(int)Math.abs(p)][1]  + "\t"+isNegative);
-				p -= p;				
+				calibWindow[calibWindowIndex][0] = (int)p;			
+				p -= p;
+				//System.out.print(/*"\t" + p +*/ "\t" + calibWindow[(int)Math.abs(p)][1]  + "\t"+isNegative + "\t" + p);
 				
 			} else {
 				if(!calibrationDone) {
 					int sign = 1;
-					double max = (-1) * CALIBRATION_WINDOW_SIZE;
+					double min = (-1);// * CALIBRATION_WINDOW_SIZE;
 					for(int i = 0; i < CALIBRATION_WINDOW_SIZE; i++ ) {
-						if(calibWindow[i][0] > max) {
-							max = i;
-							sign = calibWindow[i][1];							
+						if(calibWindow[i][1] == 1) {
+							
+						}
+						
+						if(calibWindow[i][0] < min) {
+							min = calibWindow[i][0];
+							calibratedVal = calibWindow[i][0];
+														
 						}
 					}
-					calibrationDone = true;
-					if(sign == 1) {
-						calibratedVal = max * (-1);
-						System.out.print("SIGN     " + sign + "  MAX  " + max + "   Calibrated Val  " + calibratedVal);
-					}
-					else if(sign == 2){
-						calibratedVal = max * 1;
-						System.out.print("SIGN     " + sign + "  MAX  " + max + "   Calibrated Val  " + calibratedVal);
-					}
+					calibrationDone = true;			
 					
-					System.out.println("---- Calibration DONE ---- " + max);
 					p -= calibratedVal;
-					
+					System.out.println("---- Calibration DONE ---- " + calibratedVal);
 				}
 				else {
-					p += calibratedVal;
-					System.out.print("--> " + p);
+					p -= calibratedVal;
+					System.out.print("Post Calibration" + p);
 				}
 			}
 
@@ -1708,11 +1696,11 @@ public class TestApp extends JFrame implements SerialPortEventListener {
 //				cum_volume = 0;
 //			}
 			if(cum_volume != 0 &&
-			   ((prev_state == CurrentState.INHALE && curr_state == CurrentState.EXHALE) ||
-				(prev_state == CurrentState.EXHALE && curr_state == CurrentState.INHALE)))
+			   ((prev_state == CurrentState.INHALE && curr_state == CurrentState.EXHALE) /*||
+				(prev_state == CurrentState.EXHALE && curr_state == CurrentState.INHALE)*/))
 			{
 				cum_volume -= volume;
-				//cum_volume = 0;
+				cum_volume = 0;
 				sample_time_elapsed_counter += SAMPLE_CUMULATION_TIMEOUT;
 				
 				testAppFrame.addPoint(xVal += 0.2, cum_volume);
